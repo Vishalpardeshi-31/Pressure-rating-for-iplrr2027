@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pressure Ratings</title>
+<meta name="description" content="Batters and bowlers rated on performance under pressure in IPL and T20I matches, 2022 to 2026.">
+<style>
+  :root {
+    color-scheme: light;
+    --color-fg: #1b2330; --color-fg-muted: #5b6676; --color-bg: #ffffff; --color-panel: #f5f6f9; --color-border-line: #dde2ea;
+    --color-ok: #17794a; --color-warn: #a86a00; --color-bad: #c0312b;
+    --series-a: #d6246e; --series-b: #1f4e9c;
+    --cds-chart-muted: #b3bcc9; --cds-chart-grid: #e8ebf0; --cds-chart-axis: #c9d0db; --cds-chart-reference: #7c8798;
+    --cds-text-secondary: #5b6676; --cds-surface-popover: #ffffff; --cds-border: #dde2ea; --cds-shadow-popover: 0 4px 16px rgba(20, 30, 50, .14);
+    --font-anthropic-sans: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    --font-anthropic-serif: Georgia, "Times New Roman", serif;
+    --cds-font-size-caption: 12.5px; --cds-font-size-body: 14px; --cds-font-size-heading: 17px; --cds-font-size-title: 30px;
+    --cds-font-weight-medium: 600;
+    --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 12px; --cds-gap-lg: 16px; --cds-gap-xl: 28px;
+    --cds-pad-xs: 5px; --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 16px; --cds-pad-xl: 24px;
+    --cds-radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --color-fg: #e8ebf1; --color-fg-muted: #a0aaba; --color-bg: #12161d; --color-panel: #1a2029; --color-border-line: #2c3542;
+      --color-ok: #4cc38a; --color-warn: #e0a84a; --color-bad: #f0786f;
+      --series-a: #f2619b; --series-b: #6f9be8;
+      --cds-chart-muted: #56617182; --cds-chart-grid: #232b36; --cds-chart-axis: #3a4554; --cds-chart-reference: #8591a3;
+      --cds-text-secondary: #a0aaba; --cds-surface-popover: #1f2631; --cds-border: #364152; --cds-shadow-popover: 0 4px 16px rgba(0, 0, 0, .5);
+    }
+  }
+  html { background: var(--color-bg); }
+  body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); line-height: 1.45; }
+  #dash-root { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .dash-foot { margin-top: 28px; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+</head>
+<body>
+<script>
+  // Stand-in for the dashboard runtime: serves the embedded data and redraws on resize.
+  (function () {
+    const DATA = {"batters":[{"player_id":"1699","rank":1,"player":"Suryakumar Yadav","pressure_balls":571,"pressure_matches":51,"value_pressure":28.5,"value_usual":31.0,"pressure_vs_usual":"Holds level","record_lb":9.7,"usual_level":24.03,"positive_match_pct":65,"rating":2.45,"top10_chance_pct":96,"ipl_share_pct":51,"sr_pressure":165.0,"sr_usual":167.0,"avg_pressure":34.9},{"player_id":"6396","rank":2,"player":"Tim David","pressure_balls":385,"pressure_matches":30,"value_pressure":41.5,"value_usual":28.7,"pressure_vs_usual":"Holds level","record_lb":11.06,"usual_level":16.21,"positive_match_pct":70,"rating":2.18,"top10_chance_pct":84,"ipl_share_pct":50,"sr_pressure":186.0,"sr_usual":172.0,"avg_pressure":31.1},{"player_id":"4260","rank":3,"player":"Heinrich Klaasen","pressure_balls":209,"pressure_matches":18,"value_pressure":55.7,"value_usual":26.4,"pressure_vs_usual":"Raises game","record_lb":10.07,"usual_level":17.6,"positive_match_pct":72,"rating":2.13,"top10_chance_pct":91,"ipl_share_pct":80,"sr_pressure":197.0,"sr_usual":162.0,"avg_pressure":34.2},{"player_id":"6281","rank":4,"player":"Abhishek Sharma","pressure_balls":240,"pressure_matches":27,"value_pressure":16.1,"value_usual":35.5,"pressure_vs_usual":"Drops","record_lb":0.48,"usual_level":27.14,"positive_match_pct":52,"rating":1.46,"top10_chance_pct":68,"ipl_share_pct":60,"sr_pressure":168.0,"sr_usual":189.0,"avg_pressure":31.0},{"player_id":"1318","rank":5,"player":"Andre Russell","pressure_balls":181,"pressure_matches":18,"value_pressure":31.5,"value_usual":34.8,"pressure_vs_usual":"Holds level","record_lb":3.91,"usual_level":16.64,"positive_match_pct":67,"rating":1.29,"top10_chance_pct":57,"ipl_share_pct":85,"sr_pressure":183.0,"sr_usual":167.0,"avg_pressure":23.7},{"player_id":"3125","rank":6,"player":"Nicholas Pooran","pressure_balls":395,"pressure_matches":31,"value_pressure":30.7,"value_usual":9.5,"pressure_vs_usual":"Raises game","record_lb":7.49,"usual_level":6.78,"positive_match_pct":68,"rating":1.18,"top10_chance_pct":50,"ipl_share_pct":48,"sr_pressure":162.0,"sr_usual":156.0,"avg_pressure":37.6},{"player_id":"7897","rank":7,"player":"Namboori Tilak Varma","pressure_balls":624,"pressure_matches":42,"value_pressure":19.8,"value_usual":13.2,"pressure_vs_usual":"Holds level","record_lb":6.05,"usual_level":9.79,"positive_match_pct":62,"rating":1.17,"top10_chance_pct":48,"ipl_share_pct":50,"sr_pressure":145.0,"sr_usual":144.0,"avg_pressure":34.9},{"player_id":"4853","rank":8,"player":"Glenn Phillips","pressure_balls":201,"pressure_matches":14,"value_pressure":28.4,"value_usual":14.1,"pressure_vs_usual":"Holds level","record_lb":4.32,"usual_level":8.1,"positive_match_pct":71,"rating":0.86,"top10_chance_pct":29,"ipl_share_pct":8,"sr_pressure":126.0,"sr_usual":154.0,"avg_pressure":63.5},{"player_id":"6819","rank":9,"player":"Yashasvi Jaiswal","pressure_balls":250,"pressure_matches":21,"value_pressure":30.3,"value_usual":6.5,"pressure_vs_usual":"Raises game","record_lb":5.73,"usual_level":4.66,"positive_match_pct":67,"rating":0.84,"top10_chance_pct":30,"ipl_share_pct":82,"sr_pressure":170.0,"sr_usual":152.0,"avg_pressure":35.4},{"player_id":"4986","rank":10,"player":"Rovman Powell","pressure_balls":286,"pressure_matches":30,"value_pressure":25.4,"value_usual":9.2,"pressure_vs_usual":"Holds level","record_lb":5.03,"usual_level":6.19,"positive_match_pct":70,"rating":0.84,"top10_chance_pct":31,"ipl_share_pct":37,"sr_pressure":169.0,"sr_usual":140.0,"avg_pressure":22.0},{"player_id":"4106","rank":11,"player":"Daryl Mitchell","pressure_balls":188,"pressure_matches":17,"value_pressure":35.0,"value_usual":8.3,"pressure_vs_usual":"Raises game","record_lb":5.31,"usual_level":4.97,"positive_match_pct":71,"rating":0.81,"top10_chance_pct":27,"ipl_share_pct":15,"sr_pressure":165.0,"sr_usual":144.0,"avg_pressure":25.8},{"player_id":"813","rank":12,"player":"Jos Buttler","pressure_balls":337,"pressure_matches":28,"value_pressure":18.2,"value_usual":12.2,"pressure_vs_usual":"Holds level","record_lb":2.7,"usual_level":9.7,"positive_match_pct":64,"rating":0.74,"top10_chance_pct":28,"ipl_share_pct":62,"sr_pressure":161.0,"sr_usual":155.0,"avg_pressure":38.6},{"player_id":"143","rank":13,"player":"Dinesh Karthik","pressure_balls":192,"pressure_matches":20,"value_pressure":27.2,"value_usual":14.8,"pressure_vs_usual":"Holds level","record_lb":3.76,"usual_level":6.27,"positive_match_pct":60,"rating":0.68,"top10_chance_pct":24,"ipl_share_pct":81,"sr_pressure":176.0,"sr_usual":162.0,"avg_pressure":37.6},{"player_id":"5939","rank":14,"player":"Cameron Green","pressure_balls":242,"pressure_matches":20,"value_pressure":23.8,"value_usual":11.4,"pressure_vs_usual":"Holds level","record_lb":3.08,"usual_level":6.57,"positive_match_pct":70,"rating":0.61,"top10_chance_pct":20,"ipl_share_pct":45,"sr_pressure":155.0,"sr_usual":152.0,"avg_pressure":34.2},{"player_id":"2984","rank":15,"player":"Sikandar Raza","pressure_balls":249,"pressure_matches":16,"value_pressure":29.3,"value_usual":2.9,"pressure_vs_usual":"Raises game","record_lb":5.21,"usual_level":1.58,"positive_match_pct":62,"rating":0.6,"top10_chance_pct":17,"ipl_share_pct":22,"sr_pressure":139.0,"sr_usual":135.0,"avg_pressure":28.8},{"player_id":"3024","rank":16,"player":"Mohammad Rizwan","pressure_balls":286,"pressure_matches":18,"value_pressure":20.7,"value_usual":7.1,"pressure_vs_usual":"Holds level","record_lb":3.86,"usual_level":4.16,"positive_match_pct":61,"rating":0.57,"top10_chance_pct":11,"ipl_share_pct":0,"sr_pressure":137.0,"sr_usual":124.0,"avg_pressure":49.0},{"player_id":"3700","rank":17,"player":"Tim Seifert","pressure_balls":134,"pressure_matches":12,"value_pressure":50.5,"value_usual":6.4,"pressure_vs_usual":"Raises game","record_lb":4.09,"usual_level":3.09,"positive_match_pct":67,"rating":0.54,"top10_chance_pct":24,"ipl_share_pct":2,"sr_pressure":185.0,"sr_usual":144.0,"avg_pressure":35.4},{"player_id":"4722","rank":18,"player":"Rashid Khan","pressure_balls":169,"pressure_matches":17,"value_pressure":24.3,"value_usual":18.7,"pressure_vs_usual":"Holds level","record_lb":2.52,"usual_level":6.54,"positive_match_pct":59,"rating":0.54,"top10_chance_pct":17,"ipl_share_pct":56,"sr_pressure":185.0,"sr_usual":138.0,"avg_pressure":15.6},{"player_id":"2921","rank":19,"player":"Fakhar Zaman","pressure_balls":276,"pressure_matches":23,"value_pressure":35.7,"value_usual":-11.7,"pressure_vs_usual":"Raises game","record_lb":8.0,"usual_level":-5.76,"positive_match_pct":83,"rating":0.54,"top10_chance_pct":13,"ipl_share_pct":0,"sr_pressure":149.0,"sr_usual":123.0,"avg_pressure":51.2},{"player_id":"768","rank":20,"player":"Reeza Hendricks","pressure_balls":143,"pressure_matches":12,"value_pressure":15.0,"value_usual":24.5,"pressure_vs_usual":"Holds level","record_lb":-0.22,"usual_level":12.52,"positive_match_pct":75,"rating":0.53,"top10_chance_pct":18,"ipl_share_pct":0,"sr_pressure":165.0,"sr_usual":144.0,"avg_pressure":39.3},{"player_id":"3647","rank":21,"player":"Shreyas Iyer","pressure_balls":376,"pressure_matches":26,"value_pressure":13.1,"value_usual":12.2,"pressure_vs_usual":"Holds level","record_lb":1.11,"usual_level":8.53,"positive_match_pct":58,"rating":0.47,"top10_chance_pct":19,"ipl_share_pct":77,"sr_pressure":152.0,"sr_usual":155.0,"avg_pressure":40.9},{"player_id":"1107","rank":22,"player":"Mohammad Nabi","pressure_balls":131,"pressure_matches":15,"value_pressure":38.5,"value_usual":2.5,"pressure_vs_usual":"Raises game","record_lb":4.22,"usual_level":1.14,"positive_match_pct":53,"rating":0.45,"top10_chance_pct":11,"ipl_share_pct":1,"sr_pressure":163.0,"sr_usual":122.0,"avg_pressure":21.4},{"player_id":"6288","rank":23,"player":"Shubman Gill","pressure_balls":375,"pressure_matches":33,"value_pressure":13.3,"value_usual":6.1,"pressure_vs_usual":"Holds level","record_lb":2.12,"usual_level":4.77,"positive_match_pct":64,"rating":0.39,"top10_chance_pct":10,"ipl_share_pct":75,"sr_pressure":151.0,"sr_usual":149.0,"avg_pressure":33.4},{"player_id":"5553","rank":24,"player":"Phil Salt","pressure_balls":144,"pressure_matches":13,"value_pressure":-4.4,"value_usual":25.2,"pressure_vs_usual":"Drops","record_lb":-3.77,"usual_level":17.81,"positive_match_pct":46,"rating":0.38,"top10_chance_pct":11,"ipl_share_pct":27,"sr_pressure":165.0,"sr_usual":171.0,"avg_pressure":21.5},{"player_id":"4736","rank":25,"player":"Josh Inglis","pressure_balls":131,"pressure_matches":12,"value_pressure":19.4,"value_usual":16.0,"pressure_vs_usual":"Holds level","record_lb":-0.1,"usual_level":8.73,"positive_match_pct":75,"rating":0.33,"top10_chance_pct":12,"ipl_share_pct":37,"sr_pressure":161.0,"sr_usual":165.0,"avg_pressure":35.2},{"player_id":"2258","rank":26,"player":"Sanju Samson","pressure_balls":293,"pressure_matches":30,"value_pressure":15.9,"value_usual":5.6,"pressure_vs_usual":"Holds level","record_lb":1.84,"usual_level":4.22,"positive_match_pct":70,"rating":0.32,"top10_chance_pct":10,"ipl_share_pct":68,"sr_pressure":148.0,"sr_usual":156.0,"avg_pressure":39.5},{"player_id":"4755","rank":27,"player":"Shivam Dube","pressure_balls":272,"pressure_matches":22,"value_pressure":7.0,"value_usual":11.2,"pressure_vs_usual":"Holds level","record_lb":-0.07,"usual_level":7.49,"positive_match_pct":41,"rating":0.27,"top10_chance_pct":6,"ipl_share_pct":68,"sr_pressure":144.0,"sr_usual":156.0,"avg_pressure":28.0},{"player_id":"4708","rank":28,"player":"Rinku Singh","pressure_balls":223,"pressure_matches":14,"value_pressure":15.7,"value_usual":6.8,"pressure_vs_usual":"Holds level","record_lb":1.26,"usual_level":4.27,"positive_match_pct":71,"rating":0.25,"top10_chance_pct":6,"ipl_share_pct":84,"sr_pressure":149.0,"sr_usual":152.0,"avg_pressure":30.3},{"player_id":"953","rank":29,"player":"Lokesh Rahul","pressure_balls":284,"pressure_matches":21,"value_pressure":10.9,"value_usual":8.9,"pressure_vs_usual":"Holds level","record_lb":-0.08,"usual_level":6.59,"positive_match_pct":57,"rating":0.21,"top10_chance_pct":7,"ipl_share_pct":95,"sr_pressure":152.0,"sr_usual":140.0,"avg_pressure":28.7},{"player_id":"8","rank":30,"player":"Mahendra Singh Dhoni","pressure_balls":130,"pressure_matches":13,"value_pressure":13.2,"value_usual":16.1,"pressure_vs_usual":"Holds level","record_lb":0.01,"usual_level":5.71,"positive_match_pct":46,"rating":0.18,"top10_chance_pct":3,"ipl_share_pct":100,"sr_pressure":175.0,"sr_usual":140.0,"avg_pressure":28.5},{"player_id":"220","rank":31,"player":"David Warner","pressure_balls":156,"pressure_matches":13,"value_pressure":2.1,"value_usual":17.6,"pressure_vs_usual":"Holds level","record_lb":-2.33,"usual_level":10.81,"positive_match_pct":62,"rating":0.17,"top10_chance_pct":4,"ipl_share_pct":69,"sr_pressure":129.0,"sr_usual":147.0,"avg_pressure":28.9},{"player_id":"6726","rank":32,"player":"Romario Shepherd","pressure_balls":189,"pressure_matches":20,"value_pressure":0.0,"value_usual":31.2,"pressure_vs_usual":"Drops","record_lb":-3.72,"usual_level":13.71,"positive_match_pct":45,"rating":0.16,"top10_chance_pct":10,"ipl_share_pct":22,"sr_pressure":154.0,"sr_usual":156.0,"avg_pressure":20.9},{"player_id":"2463","rank":33,"player":"Ryan Burl","pressure_balls":156,"pressure_matches":12,"value_pressure":19.2,"value_usual":6.1,"pressure_vs_usual":"Holds level","record_lb":1.1,"usual_level":2.84,"positive_match_pct":50,"rating":0.15,"top10_chance_pct":4,"ipl_share_pct":0,"sr_pressure":126.0,"sr_usual":116.0,"avg_pressure":24.6},{"player_id":"6931","rank":34,"player":"Pathum Nissanka","pressure_balls":295,"pressure_matches":22,"value_pressure":10.8,"value_usual":7.6,"pressure_vs_usual":"Holds level","record_lb":-0.05,"usual_level":5.08,"positive_match_pct":64,"rating":0.13,"top10_chance_pct":7,"ipl_share_pct":13,"sr_pressure":146.0,"sr_usual":134.0,"avg_pressure":26.9},{"player_id":"838","rank":35,"player":"Glenn Maxwell","pressure_balls":140,"pressure_matches":12,"value_pressure":26.8,"value_usual":4.8,"pressure_vs_usual":"Holds level","record_lb":0.99,"usual_level":2.67,"positive_match_pct":67,"rating":0.13,"top10_chance_pct":10,"ipl_share_pct":40,"sr_pressure":168.0,"sr_usual":159.0,"avg_pressure":26.1},{"player_id":"20702","rank":36,"player":"Tristan Stubbs","pressure_balls":233,"pressure_matches":16,"value_pressure":6.6,"value_usual":11.4,"pressure_vs_usual":"Holds level","record_lb":-0.75,"usual_level":6.39,"positive_match_pct":56,"rating":0.12,"top10_chance_pct":3,"ipl_share_pct":67,"sr_pressure":142.0,"sr_usual":151.0,"avg_pressure":33.0},{"player_id":"23450","rank":37,"player":"Sai Sudharsan","pressure_balls":216,"pressure_matches":20,"value_pressure":5.5,"value_usual":8.8,"pressure_vs_usual":"Holds level","record_lb":-0.77,"usual_level":6.16,"positive_match_pct":70,"rating":0.1,"top10_chance_pct":1,"ipl_share_pct":100,"sr_pressure":140.0,"sr_usual":149.0,"avg_pressure":43.3},{"player_id":"3672","rank":38,"player":"Kusal Mendis","pressure_balls":282,"pressure_matches":23,"value_pressure":21.1,"value_usual":-5.0,"pressure_vs_usual":"Raises game","record_lb":3.2,"usual_level":-3.12,"positive_match_pct":65,"rating":0.08,"top10_chance_pct":6,"ipl_share_pct":0,"sr_pressure":141.0,"sr_usual":131.0,"avg_pressure":33.2},{"player_id":"2639","rank":39,"player":"Marcus Stoinis","pressure_balls":216,"pressure_matches":20,"value_pressure":8.8,"value_usual":10.3,"pressure_vs_usual":"Holds level","record_lb":-1.17,"usual_level":6.44,"positive_match_pct":55,"rating":0.07,"top10_chance_pct":6,"ipl_share_pct":76,"sr_pressure":149.0,"sr_usual":153.0,"avg_pressure":20.1},{"player_id":"2436","rank":40,"player":"Dasun Shanaka","pressure_balls":242,"pressure_matches":19,"value_pressure":12.5,"value_usual":2.8,"pressure_vs_usual":"Holds level","record_lb":1.03,"usual_level":1.28,"positive_match_pct":53,"rating":0.05,"top10_chance_pct":2,"ipl_share_pct":9,"sr_pressure":155.0,"sr_usual":137.0,"avg_pressure":23.4},{"player_id":"2003","rank":41,"player":"Bhanuka Rajapaksa","pressure_balls":155,"pressure_matches":12,"value_pressure":32.6,"value_usual":-11.2,"pressure_vs_usual":"Raises game","record_lb":3.02,"usual_level":-3.42,"positive_match_pct":67,"rating":0.04,"top10_chance_pct":4,"ipl_share_pct":27,"sr_pressure":161.0,"sr_usual":123.0,"avg_pressure":35.6},{"player_id":"47","rank":42,"player":"Virat Kohli","pressure_balls":323,"pressure_matches":23,"value_pressure":6.1,"value_usual":7.5,"pressure_vs_usual":"Holds level","record_lb":-1.23,"usual_level":5.83,"positive_match_pct":74,"rating":0.03,"top10_chance_pct":4,"ipl_share_pct":74,"sr_pressure":142.0,"sr_usual":146.0,"avg_pressure":41.7},{"player_id":"796","rank":43,"player":"Matthew Wade","pressure_balls":189,"pressure_matches":14,"value_pressure":17.1,"value_usual":-3.3,"pressure_vs_usual":"Holds level","record_lb":1.7,"usual_level":-0.86,"positive_match_pct":64,"rating":0.02,"top10_chance_pct":2,"ipl_share_pct":34,"sr_pressure":143.0,"sr_usual":129.0,"avg_pressure":38.7},{"player_id":"4823","rank":44,"player":"Washington Sundar","pressure_balls":192,"pressure_matches":15,"value_pressure":22.7,"value_usual":-6.3,"pressure_vs_usual":"Raises game","record_lb":2.45,"usual_level":-2.66,"positive_match_pct":60,"rating":0.01,"top10_chance_pct":3,"ipl_share_pct":46,"sr_pressure":141.0,"sr_usual":139.0,"avg_pressure":19.4},{"player_id":"7690","rank":45,"player":"Saim Ayub","pressure_balls":170,"pressure_matches":18,"value_pressure":38.0,"value_usual":-17.1,"pressure_vs_usual":"Raises game","record_lb":5.31,"usual_level":-9.25,"positive_match_pct":67,"rating":0.0,"top10_chance_pct":3,"ipl_share_pct":0,"sr_pressure":152.0,"sr_usual":135.0,"avg_pressure":51.6},{"player_id":"4812","rank":46,"player":"Harry Tector","pressure_balls":224,"pressure_matches":17,"value_pressure":23.5,"value_usual":-14.2,"pressure_vs_usual":"Raises game","record_lb":4.14,"usual_level":-6.85,"positive_match_pct":76,"rating":-0.02,"top10_chance_pct":1,"ipl_share_pct":0,"sr_pressure":127.0,"sr_usual":119.0,"avg_pressure":47.5},{"player_id":"2490","rank":47,"player":"Mohammad Nawaz","pressure_balls":163,"pressure_matches":16,"value_pressure":17.6,"value_usual":1.9,"pressure_vs_usual":"Holds level","record_lb":0.55,"usual_level":0.67,"positive_match_pct":56,"rating":-0.04,"top10_chance_pct":3,"ipl_share_pct":0,"sr_pressure":163.0,"sr_usual":131.0,"avg_pressure":24.2},{"player_id":"4904","rank":48,"player":"Kamindu Mendis","pressure_balls":158,"pressure_matches":14,"value_pressure":20.7,"value_usual":-3.5,"pressure_vs_usual":"Raises game","record_lb":1.49,"usual_level":-1.42,"positive_match_pct":64,"rating":-0.04,"top10_chance_pct":1,"ipl_share_pct":15,"sr_pressure":147.0,"sr_usual":124.0,"avg_pressure":25.9},{"player_id":"1077","rank":49,"player":"David Miller","pressure_balls":330,"pressure_matches":25,"value_pressure":9.6,"value_usual":2.7,"pressure_vs_usual":"Holds level","record_lb":0.1,"usual_level":1.65,"positive_match_pct":60,"rating":-0.05,"top10_chance_pct":5,"ipl_share_pct":81,"sr_pressure":158.0,"sr_usual":145.0,"avg_pressure":37.3},{"player_id":"3916","rank":50,"player":"Jitesh Sharma","pressure_balls":177,"pressure_matches":18,"value_pressure":11.8,"value_usual":4.3,"pressure_vs_usual":"Holds level","record_lb":-0.37,"usual_level":2.23,"positive_match_pct":61,"rating":-0.07,"top10_chance_pct":3,"ipl_share_pct":88,"sr_pressure":165.0,"sr_usual":151.0,"avg_pressure":22.5},{"player_id":"7544","rank":51,"player":"Venkatesh Iyer","pressure_balls":175,"pressure_matches":13,"value_pressure":15.9,"value_usual":3.9,"pressure_vs_usual":"Holds level","record_lb":-0.51,"usual_level":2.2,"positive_match_pct":46,"rating":-0.09,"top10_chance_pct":7,"ipl_share_pct":96,"sr_pressure":156.0,"sr_usual":147.0,"avg_pressure":24.8},{"player_id":"3374","rank":52,"player":"Mark Chapman","pressure_balls":189,"pressure_matches":14,"value_pressure":1.9,"value_usual":14.6,"pressure_vs_usual":"Holds level","record_lb":-3.03,"usual_level":7.34,"positive_match_pct":50,"rating":-0.12,"top10_chance_pct":8,"ipl_share_pct":0,"sr_pressure":134.0,"sr_usual":149.0,"avg_pressure":25.3},{"player_id":"6423","rank":53,"player":"Riyan Parag","pressure_balls":206,"pressure_matches":17,"value_pressure":-4.9,"value_usual":14.8,"pressure_vs_usual":"Holds level","record_lb":-3.67,"usual_level":8.74,"positive_match_pct":59,"rating":-0.12,"top10_chance_pct":2,"ipl_share_pct":99,"sr_pressure":147.0,"sr_usual":152.0,"avg_pressure":20.1},{"player_id":"6651","rank":54,"player":"Towhid Hridoy","pressure_balls":175,"pressure_matches":14,"value_pressure":22.0,"value_usual":-5.1,"pressure_vs_usual":"Raises game","record_lb":1.31,"usual_level":-2.72,"positive_match_pct":71,"rating":-0.14,"top10_chance_pct":3,"ipl_share_pct":0,"sr_pressure":142.0,"sr_usual":121.0,"avg_pressure":49.6},{"player_id":"4391","rank":55,"player":"Liam Livingstone","pressure_balls":250,"pressure_matches":21,"value_pressure":6.6,"value_usual":7.8,"pressure_vs_usual":"Holds level","record_lb":-2.13,"usual_level":4.31,"positive_match_pct":52,"rating":-0.18,"top10_chance_pct":4,"ipl_share_pct":53,"sr_pressure":151.0,"sr_usual":156.0,"avg_pressure":19.8},{"player_id":"3926","rank":56,"player":"Rahul Tewatia","pressure_balls":183,"pressure_matches":15,"value_pressure":14.4,"value_usual":-7.0,"pressure_vs_usual":"Holds level","record_lb":0.9,"usual_level":-2.49,"positive_match_pct":53,"rating":-0.18,"top10_chance_pct":1,"ipl_share_pct":100,"sr_pressure":175.0,"sr_usual":135.0,"avg_pressure":32.0},{"player_id":"3639","rank":57,"player":"Brandon King","pressure_balls":169,"pressure_matches":19,"value_pressure":22.4,"value_usual":-8.8,"pressure_vs_usual":"Raises game","record_lb":2.11,"usual_level":-5.4,"positive_match_pct":53,"rating":-0.19,"top10_chance_pct":1,"ipl_share_pct":0,"sr_pressure":144.0,"sr_usual":129.0,"avg_pressure":48.8},{"player_id":"1596","rank":58,"player":"Moeen Ali","pressure_balls":186,"pressure_matches":14,"value_pressure":6.3,"value_usual":1.7,"pressure_vs_usual":"Holds level","record_lb":-0.75,"usual_level":0.83,"positive_match_pct":50,"rating":-0.2,"top10_chance_pct":0,"ipl_share_pct":45,"sr_pressure":119.0,"sr_usual":150.0,"avg_pressure":37.0},{"player_id":"4369","rank":59,"player":"Shai Hope","pressure_balls":155,"pressure_matches":16,"value_pressure":3.5,"value_usual":7.0,"pressure_vs_usual":"Holds level","record_lb":-2.32,"usual_level":4.16,"positive_match_pct":56,"rating":-0.21,"top10_chance_pct":2,"ipl_share_pct":2,"sr_pressure":137.0,"sr_usual":143.0,"avg_pressure":30.4},{"player_id":"7216","rank":60,"player":"Prabhsimran Singh","pressure_balls":210,"pressure_matches":19,"value_pressure":7.7,"value_usual":3.9,"pressure_vs_usual":"Holds level","record_lb":-1.5,"usual_level":2.27,"positive_match_pct":53,"rating":-0.21,"top10_chance_pct":3,"ipl_share_pct":100,"sr_pressure":170.0,"sr_usual":157.0,"avg_pressure":25.5},{"player_id":"4409","rank":61,"player":"Sam Curran","pressure_balls":217,"pressure_matches":15,"value_pressure":29.5,"value_usual":-20.8,"pressure_vs_usual":"Raises game","record_lb":4.08,"usual_level":-10.26,"positive_match_pct":60,"rating":-0.22,"top10_chance_pct":1,"ipl_share_pct":61,"sr_pressure":150.0,"sr_usual":122.0,"avg_pressure":27.1},{"player_id":"3297","rank":62,"player":"Shimron Hetmyer","pressure_balls":247,"pressure_matches":27,"value_pressure":10.6,"value_usual":-0.3,"pressure_vs_usual":"Holds level","record_lb":-0.62,"usual_level":-0.2,"positive_match_pct":56,"rating":-0.24,"top10_chance_pct":3,"ipl_share_pct":73,"sr_pressure":175.0,"sr_usual":144.0,"avg_pressure":20.6},{"player_id":"3330","rank":63,"player":"Hardik Pandya","pressure_balls":406,"pressure_matches":32,"value_pressure":4.8,"value_usual":-1.2,"pressure_vs_usual":"Holds level","record_lb":-0.41,"usual_level":-0.86,"positive_match_pct":47,"rating":-0.25,"top10_chance_pct":0,"ipl_share_pct":67,"sr_pressure":140.0,"sr_usual":141.0,"avg_pressure":43.8},{"player_id":"4246","rank":64,"player":"Nitish Rana","pressure_balls":229,"pressure_matches":17,"value_pressure":3.2,"value_usual":2.1,"pressure_vs_usual":"Holds level","record_lb":-1.69,"usual_level":1.09,"positive_match_pct":59,"rating":-0.3,"top10_chance_pct":1,"ipl_share_pct":100,"sr_pressure":138.0,"sr_usual":149.0,"avg_pressure":28.6},{"player_id":"152","rank":65,"player":"Ravindra Jadeja","pressure_balls":287,"pressure_matches":20,"value_pressure":9.5,"value_usual":-10.2,"pressure_vs_usual":"Raises game","record_lb":1.09,"usual_level":-5.31,"positive_match_pct":65,"rating":-0.32,"top10_chance_pct":0,"ipl_share_pct":83,"sr_pressure":148.0,"sr_usual":128.0,"avg_pressure":42.5},{"player_id":"2485","rank":66,"player":"Babar Azam","pressure_balls":191,"pressure_matches":18,"value_pressure":-0.2,"value_usual":2.5,"pressure_vs_usual":"Holds level","record_lb":-2.94,"usual_level":1.58,"positive_match_pct":56,"rating":-0.43,"top10_chance_pct":0,"ipl_share_pct":0,"sr_pressure":139.0,"sr_usual":132.0,"avg_pressure":29.6},{"player_id":"6059","rank":67,"player":"Ruturaj Gaikwad","pressure_balls":135,"pressure_matches":14,"value_pressure":1.0,"value_usual":1.2,"pressure_vs_usual":"Holds level","record_lb":-2.83,"usual_level":0.85,"positive_match_pct":86,"rating":-0.46,"top10_chance_pct":0,"ipl_share_pct":81,"sr_pressure":144.0,"sr_usual":139.0,"avg_pressure":32.3},{"player_id":"3648","rank":68,"player":"Deepak Hooda","pressure_balls":155,"pressure_matches":13,"value_pressure":1.4,"value_usual":-1.5,"pressure_vs_usual":"Holds level","record_lb":-2.72,"usual_level":-0.77,"positive_match_pct":69,"rating":-0.54,"top10_chance_pct":0,"ipl_share_pct":76,"sr_pressure":139.0,"sr_usual":132.0,"avg_pressure":19.6},{"player_id":"1440","rank":69,"player":"Rahul Tripathi","pressure_balls":189,"pressure_matches":17,"value_pressure":-5.3,"value_usual":2.0,"pressure_vs_usual":"Holds level","record_lb":-4.94,"usual_level":0.91,"positive_match_pct":65,"rating":-0.73,"top10_chance_pct":1,"ipl_share_pct":89,"sr_pressure":152.0,"sr_usual":137.0,"avg_pressure":20.5},{"player_id":"6725","rank":70,"player":"Sherfane Rutherford","pressure_balls":239,"pressure_matches":16,"value_pressure":0.2,"value_usual":-10.4,"pressure_vs_usual":"Holds level","record_lb":-2.48,"usual_level":-4.99,"positive_match_pct":56,"rating":-0.75,"top10_chance_pct":0,"ipl_share_pct":48,"sr_pressure":142.0,"sr_usual":149.0,"avg_pressure":28.2},{"player_id":"4117","rank":71,"player":"Ishan Kishan","pressure_balls":360,"pressure_matches":32,"value_pressure":-9.2,"value_usual":6.5,"pressure_vs_usual":"Drops","record_lb":-7.06,"usual_level":5.03,"positive_match_pct":59,"rating":-0.76,"top10_chance_pct":0,"ipl_share_pct":64,"sr_pressure":138.0,"sr_usual":148.0,"avg_pressure":22.6},{"player_id":"7260","rank":72,"player":"Dhruv Jurel","pressure_balls":231,"pressure_matches":18,"value_pressure":-8.3,"value_usual":-3.2,"pressure_vs_usual":"Holds level","record_lb":-4.75,"usual_level":-1.56,"positive_match_pct":44,"rating":-0.84,"top10_chance_pct":0,"ipl_share_pct":92,"sr_pressure":142.0,"sr_usual":155.0,"avg_pressure":27.3},{"player_id":"818","rank":73,"player":"Mitchell Marsh","pressure_balls":276,"pressure_matches":20,"value_pressure":-25.0,"value_usual":21.0,"pressure_vs_usual":"Drops","record_lb":-12.08,"usual_level":14.59,"positive_match_pct":45,"rating":-0.85,"top10_chance_pct":2,"ipl_share_pct":41,"sr_pressure":132.0,"sr_usual":161.0,"avg_pressure":18.2},{"player_id":"2876","rank":74,"player":"Axar Patel","pressure_balls":329,"pressure_matches":31,"value_pressure":-9.9,"value_usual":2.8,"pressure_vs_usual":"Holds level","record_lb":-6.35,"usual_level":1.69,"positive_match_pct":42,"rating":-0.86,"top10_chance_pct":0,"ipl_share_pct":57,"sr_pressure":142.0,"sr_usual":137.0,"avg_pressure":19.5},{"player_id":"2671","rank":75,"player":"Liton Das","pressure_balls":184,"pressure_matches":19,"value_pressure":-5.5,"value_usual":-8.3,"pressure_vs_usual":"Holds level","record_lb":-3.92,"usual_level":-4.76,"positive_match_pct":47,"rating":-0.92,"top10_chance_pct":0,"ipl_share_pct":0,"sr_pressure":128.0,"sr_usual":127.0,"avg_pressure":23.6},{"player_id":"24017","rank":76,"player":"Brian Bennett","pressure_balls":141,"pressure_matches":15,"value_pressure":-20.5,"value_usual":0.9,"pressure_vs_usual":"Holds level","record_lb":-6.83,"usual_level":0.48,"positive_match_pct":40,"rating":-0.99,"top10_chance_pct":0,"ipl_share_pct":0,"sr_pressure":120.0,"sr_usual":132.0,"avg_pressure":18.8},{"player_id":"6272","rank":77,"player":"William Jacks","pressure_balls":135,"pressure_matches":12,"value_pressure":-18.2,"value_usual":-3.8,"pressure_vs_usual":"Holds level","record_lb":-6.47,"usual_level":-1.78,"positive_match_pct":42,"rating":-1.07,"top10_chance_pct":0,"ipl_share_pct":30,"sr_pressure":134.0,"sr_usual":154.0,"avg_pressure":18.1},{"player_id":"4219","rank":78,"player":"Krunal Pandya","pressure_balls":173,"pressure_matches":12,"value_pressure":-0.3,"value_usual":-19.5,"pressure_vs_usual":"Holds level","record_lb":-3.65,"usual_level":-8.47,"positive_match_pct":25,"rating":-1.1,"top10_chance_pct":0,"ipl_share_pct":100,"sr_pressure":131.0,"sr_usual":126.0,"avg_pressure":25.2},{"player_id":"4703","rank":79,"player":"Rishabh Pant","pressure_balls":185,"pressure_matches":13,"value_pressure":-18.6,"value_usual":-1.5,"pressure_vs_usual":"Holds level","record_lb":-7.21,"usual_level":-0.94,"positive_match_pct":54,"rating":-1.12,"top10_chance_pct":0,"ipl_share_pct":89,"sr_pressure":125.0,"sr_usual":144.0,"avg_pressure":17.8},{"player_id":"1941","rank":80,"player":"Devon Conway","pressure_balls":159,"pressure_matches":16,"value_pressure":-19.0,"value_usual":-4.5,"pressure_vs_usual":"Holds level","record_lb":-6.46,"usual_level":-3.02,"positive_match_pct":69,"rating":-1.14,"top10_chance_pct":0,"ipl_share_pct":55,"sr_pressure":125.0,"sr_usual":133.0,"avg_pressure":28.4},{"player_id":"6460","rank":81,"player":"Ayush Badoni","pressure_balls":184,"pressure_matches":16,"value_pressure":-29.9,"value_usual":3.3,"pressure_vs_usual":"Drops","record_lb":-9.27,"usual_level":1.7,"positive_match_pct":38,"rating":-1.23,"top10_chance_pct":0,"ipl_share_pct":100,"sr_pressure":130.0,"sr_usual":142.0,"avg_pressure":15.0},{"player_id":"6674","rank":82,"player":"Rahmanullah Gurbaz","pressure_balls":135,"pressure_matches":12,"value_pressure":-6.5,"value_usual":-15.2,"pressure_vs_usual":"Holds level","record_lb":-4.38,"usual_level":-9.36,"positive_match_pct":58,"rating":-1.24,"top10_chance_pct":0,"ipl_share_pct":32,"sr_pressure":134.0,"sr_usual":130.0,"avg_pressure":20.1},{"player_id":"6448","rank":83,"player":"Ibrahim Zadran","pressure_balls":214,"pressure_matches":21,"value_pressure":-24.9,"value_usual":-0.7,"pressure_vs_usual":"Drops","record_lb":-8.71,"usual_level":-0.4,"positive_match_pct":43,"rating":-1.28,"top10_chance_pct":0,"ipl_share_pct":0,"sr_pressure":101.0,"sr_usual":121.0,"avg_pressure":27.0},{"player_id":"126","rank":84,"player":"Rohit Sharma","pressure_balls":163,"pressure_matches":16,"value_pressure":-18.3,"value_usual":-6.8,"pressure_vs_usual":"Holds level","record_lb":-7.1,"usual_level":-4.74,"positive_match_pct":56,"rating":-1.32,"top10_chance_pct":0,"ipl_share_pct":82,"sr_pressure":150.0,"sr_usual":143.0,"avg_pressure":22.2},{"player_id":"3605","rank":85,"player":"Aiden Markram","pressure_balls":183,"pressure_matches":18,"value_pressure":-41.5,"value_usual":8.7,"pressure_vs_usual":"Drops","record_lb":-12.46,"usual_level":6.13,"positive_match_pct":39,"rating":-1.38,"top10_chance_pct":0,"ipl_share_pct":67,"sr_pressure":117.0,"sr_usual":146.0,"avg_pressure":15.4},{"player_id":"6314","rank":86,"player":"Devdutt Padikkal","pressure_balls":174,"pressure_matches":14,"value_pressure":-12.4,"value_usual":-16.4,"pressure_vs_usual":"Holds level","record_lb":-5.7,"usual_level":-9.34,"positive_match_pct":64,"rating":-1.41,"top10_chance_pct":0,"ipl_share_pct":100,"sr_pressure":139.0,"sr_usual":139.0,"avg_pressure":30.1},{"player_id":"4895","rank":87,"player":"Charith Asalanka","pressure_balls":144,"pressure_matches":15,"value_pressure":-40.3,"value_usual":1.5,"pressure_vs_usual":"Drops","record_lb":-10.45,"usual_level":0.71,"positive_match_pct":27,"rating":-1.44,"top10_chance_pct":0,"ipl_share_pct":0,"sr_pressure":93.0,"sr_usual":136.0,"avg_pressure":11.2}],"bowlers":[{"player_id":"781","rank":1,"player":"Sunil Narine","pressure_balls":237,"pressure_matches":22,"value_pressure":45.2,"value_usual":22.1,"pressure_vs_usual":"Raises game","record_lb":4.44,"usual_level":13.13,"positive_match_pct":73,"rating":2.19,"top10_chance_pct":94,"ipl_share_pct":100,"econ_pressure":6.08,"econ_usual":6.99,"wkts_pressure":15.0},{"player_id":"830","rank":2,"player":"Josh Hazlewood","pressure_balls":361,"pressure_matches":35,"value_pressure":32.3,"value_usual":15.2,"pressure_vs_usual":"Raises game","record_lb":3.96,"usual_level":8.23,"positive_match_pct":71,"rating":1.74,"top10_chance_pct":66,"ipl_share_pct":65,"econ_pressure":8.02,"econ_usual":8.34,"wkts_pressure":29.0},{"player_id":"6256","rank":3,"player":"Varun Chakravarthy","pressure_balls":362,"pressure_matches":37,"value_pressure":18.4,"value_usual":26.4,"pressure_vs_usual":"Holds level","record_lb":1.43,"usual_level":17.66,"positive_match_pct":54,"rating":1.71,"top10_chance_pct":72,"ipl_share_pct":59,"econ_pressure":8.03,"econ_usual":7.98,"wkts_pressure":26.0},{"player_id":"3644","rank":4,"player":"Kuldeep Yadav","pressure_balls":283,"pressure_matches":24,"value_pressure":23.5,"value_usual":21.2,"pressure_vs_usual":"Holds level","record_lb":1.91,"usual_level":13.81,"positive_match_pct":58,"rating":1.58,"top10_chance_pct":64,"ipl_share_pct":75,"econ_pressure":7.91,"econ_usual":7.98,"wkts_pressure":20.0},{"player_id":"360","rank":5,"player":"Bhuvneshwar Kumar","pressure_balls":519,"pressure_matches":49,"value_pressure":17.2,"value_usual":16.5,"pressure_vs_usual":"Holds level","record_lb":1.89,"usual_level":10.93,"positive_match_pct":47,"rating":1.38,"top10_chance_pct":50,"ipl_share_pct":72,"econ_pressure":9.29,"econ_usual":7.98,"wkts_pressure":33.0},{"player_id":"4101","rank":6,"player":"Mitchell Santner","pressure_balls":235,"pressure_matches":23,"value_pressure":29.3,"value_usual":12.7,"pressure_vs_usual":"Holds level","record_lb":2.35,"usual_level":8.01,"positive_match_pct":52,"rating":1.31,"top10_chance_pct":45,"ipl_share_pct":34,"econ_pressure":6.66,"econ_usual":7.61,"wkts_pressure":15.0},{"player_id":"4219","rank":7,"player":"Krunal Pandya","pressure_balls":304,"pressure_matches":24,"value_pressure":31.3,"value_usual":8.7,"pressure_vs_usual":"Raises game","record_lb":3.05,"usual_level":4.48,"positive_match_pct":58,"rating":1.26,"top10_chance_pct":39,"ipl_share_pct":100,"econ_pressure":6.88,"econ_usual":8.1,"wkts_pressure":19.0},{"player_id":"2933","rank":8,"player":"Jasprit Bumrah","pressure_balls":380,"pressure_matches":38,"value_pressure":2.4,"value_usual":35.3,"pressure_vs_usual":"Drops","record_lb":-1.3,"usual_level":21.26,"positive_match_pct":47,"rating":1.23,"top10_chance_pct":46,"ipl_share_pct":67,"econ_pressure":8.08,"econ_usual":6.99,"wkts_pressure":18.0},{"player_id":"4692","rank":9,"player":"Lockie Ferguson","pressure_balls":230,"pressure_matches":24,"value_pressure":48.6,"value_usual":-1.5,"pressure_vs_usual":"Raises game","record_lb":3.94,"usual_level":-0.76,"positive_match_pct":62,"rating":1.14,"top10_chance_pct":33,"ipl_share_pct":63,"econ_pressure":8.01,"econ_usual":9.19,"wkts_pressure":21.0},{"player_id":"4373","rank":10,"player":"Mustafizur Rahman","pressure_balls":406,"pressure_matches":45,"value_pressure":18.1,"value_usual":10.0,"pressure_vs_usual":"Holds level","record_lb":2.18,"usual_level":5.74,"positive_match_pct":60,"rating":1.11,"top10_chance_pct":31,"ipl_share_pct":23,"econ_pressure":8.14,"econ_usual":7.7,"wkts_pressure":31.0},{"player_id":"6669","rank":11,"player":"Mohsin Khan","pressure_balls":182,"pressure_matches":17,"value_pressure":26.7,"value_usual":22.6,"pressure_vs_usual":"Holds level","record_lb":1.33,"usual_level":8.09,"positive_match_pct":71,"rating":1.05,"top10_chance_pct":31,"ipl_share_pct":100,"econ_pressure":7.6,"econ_usual":8.71,"wkts_pressure":12.0},{"player_id":"7920","rank":12,"player":"Nathan Ellis","pressure_balls":313,"pressure_matches":24,"value_pressure":23.8,"value_usual":10.5,"pressure_vs_usual":"Holds level","record_lb":2.21,"usual_level":4.27,"positive_match_pct":54,"rating":1.02,"top10_chance_pct":26,"ipl_share_pct":34,"econ_pressure":8.59,"econ_usual":8.06,"wkts_pressure":24.0},{"player_id":"22920","rank":13,"player":"Jacob Duffy","pressure_balls":149,"pressure_matches":15,"value_pressure":33.2,"value_usual":18.9,"pressure_vs_usual":"Holds level","record_lb":1.13,"usual_level":8.48,"positive_match_pct":67,"rating":1.02,"top10_chance_pct":33,"ipl_share_pct":0,"econ_pressure":8.45,"econ_usual":8.87,"wkts_pressure":12.0},{"player_id":"2490","rank":14,"player":"Mohammad Nawaz","pressure_balls":220,"pressure_matches":20,"value_pressure":23.0,"value_usual":19.1,"pressure_vs_usual":"Holds level","record_lb":0.91,"usual_level":9.05,"positive_match_pct":50,"rating":1.0,"top10_chance_pct":30,"ipl_share_pct":0,"econ_pressure":6.97,"econ_usual":7.17,"wkts_pressure":16.0},{"player_id":"8661","rank":15,"player":"Matheesha Pathirana","pressure_balls":238,"pressure_matches":22,"value_pressure":18.3,"value_usual":14.0,"pressure_vs_usual":"Holds level","record_lb":1.35,"usual_level":7.16,"positive_match_pct":77,"rating":0.99,"top10_chance_pct":21,"ipl_share_pct":73,"econ_pressure":9.26,"econ_usual":8.75,"wkts_pressure":18.0},{"player_id":"6450","rank":16,"player":"Mujeeb Ur Rahman","pressure_balls":198,"pressure_matches":19,"value_pressure":39.3,"value_usual":3.9,"pressure_vs_usual":"Raises game","record_lb":2.7,"usual_level":1.62,"positive_match_pct":63,"rating":0.98,"top10_chance_pct":26,"ipl_share_pct":0,"econ_pressure":6.54,"econ_usual":7.16,"wkts_pressure":15.0},{"player_id":"4722","rank":17,"player":"Rashid Khan","pressure_balls":399,"pressure_matches":34,"value_pressure":6.7,"value_usual":17.7,"pressure_vs_usual":"Holds level","record_lb":-0.12,"usual_level":12.8,"positive_match_pct":44,"rating":0.98,"top10_chance_pct":29,"ipl_share_pct":54,"econ_pressure":7.29,"econ_usual":7.42,"wkts_pressure":24.0},{"player_id":"2876","rank":18,"player":"Axar Patel","pressure_balls":407,"pressure_matches":36,"value_pressure":19.3,"value_usual":4.9,"pressure_vs_usual":"Raises game","record_lb":2.06,"usual_level":3.5,"positive_match_pct":47,"rating":0.93,"top10_chance_pct":26,"ipl_share_pct":43,"econ_pressure":7.3,"econ_usual":8.01,"wkts_pressure":21.0},{"player_id":"3628","rank":19,"player":"Kagiso Rabada","pressure_balls":292,"pressure_matches":25,"value_pressure":20.7,"value_usual":7.6,"pressure_vs_usual":"Holds level","record_lb":1.78,"usual_level":4.52,"positive_match_pct":68,"rating":0.93,"top10_chance_pct":21,"ipl_share_pct":75,"econ_pressure":9.01,"econ_usual":9.34,"wkts_pressure":20.0},{"player_id":"152","rank":20,"player":"Ravindra Jadeja","pressure_balls":183,"pressure_matches":16,"value_pressure":27.1,"value_usual":8.4,"pressure_vs_usual":"Holds level","record_lb":1.36,"usual_level":4.79,"positive_match_pct":62,"rating":0.83,"top10_chance_pct":17,"ipl_share_pct":97,"econ_pressure":7.32,"econ_usual":7.99,"wkts_pressure":10.0},{"player_id":"5979","rank":21,"player":"Abrar Ahmed","pressure_balls":176,"pressure_matches":14,"value_pressure":24.5,"value_usual":17.8,"pressure_vs_usual":"Holds level","record_lb":0.73,"usual_level":7.19,"positive_match_pct":57,"rating":0.83,"top10_chance_pct":19,"ipl_share_pct":0,"econ_pressure":6.45,"econ_usual":6.75,"wkts_pressure":12.0},{"player_id":"7967","rank":22,"player":"Noor Ahmad","pressure_balls":201,"pressure_matches":14,"value_pressure":11.6,"value_usual":19.9,"pressure_vs_usual":"Holds level","record_lb":-0.53,"usual_level":11.86,"positive_match_pct":36,"rating":0.81,"top10_chance_pct":24,"ipl_share_pct":53,"econ_pressure":9.42,"econ_usual":7.84,"wkts_pressure":14.0},{"player_id":"4900","rank":23,"player":"Wanindu Hasaranga","pressure_balls":309,"pressure_matches":24,"value_pressure":4.2,"value_usual":19.1,"pressure_vs_usual":"Holds level","record_lb":-0.69,"usual_level":12.47,"positive_match_pct":58,"rating":0.81,"top10_chance_pct":16,"ipl_share_pct":55,"econ_pressure":8.59,"econ_usual":7.67,"wkts_pressure":21.0},{"player_id":"6512","rank":24,"player":"Michael Bracewell","pressure_balls":143,"pressure_matches":14,"value_pressure":33.4,"value_usual":8.9,"pressure_vs_usual":"Raises game","record_lb":1.46,"usual_level":3.35,"positive_match_pct":57,"rating":0.77,"top10_chance_pct":15,"ipl_share_pct":6,"econ_pressure":6.84,"econ_usual":8.25,"wkts_pressure":9.0},{"player_id":"2417","rank":25,"player":"Akeal Hosein","pressure_balls":330,"pressure_matches":34,"value_pressure":21.5,"value_usual":2.0,"pressure_vs_usual":"Raises game","record_lb":1.75,"usual_level":1.22,"positive_match_pct":50,"rating":0.7,"top10_chance_pct":16,"ipl_share_pct":8,"econ_pressure":7.51,"econ_usual":7.78,"wkts_pressure":21.0},{"player_id":"6355","rank":26,"player":"Shaheen Afridi","pressure_balls":277,"pressure_matches":28,"value_pressure":16.7,"value_usual":8.7,"pressure_vs_usual":"Holds level","record_lb":0.68,"usual_level":3.82,"positive_match_pct":50,"rating":0.59,"top10_chance_pct":12,"ipl_share_pct":0,"econ_pressure":8.07,"econ_usual":7.8,"wkts_pressure":21.0},{"player_id":"6523","rank":27,"player":"Blessing Muzarabani","pressure_balls":208,"pressure_matches":21,"value_pressure":3.8,"value_usual":25.1,"pressure_vs_usual":"Drops","record_lb":-1.15,"usual_level":10.51,"positive_match_pct":38,"rating":0.56,"top10_chance_pct":12,"ipl_share_pct":2,"econ_pressure":8.3,"econ_usual":7.29,"wkts_pressure":11.0},{"player_id":"5837","rank":28,"player":"Mahedi Hasan","pressure_balls":169,"pressure_matches":19,"value_pressure":18.0,"value_usual":11.5,"pressure_vs_usual":"Holds level","record_lb":-0.29,"usual_level":5.2,"positive_match_pct":47,"rating":0.43,"top10_chance_pct":14,"ipl_share_pct":0,"econ_pressure":6.88,"econ_usual":7.09,"wkts_pressure":9.0},{"player_id":"5944","rank":29,"player":"Mohammed Siraj","pressure_balls":372,"pressure_matches":36,"value_pressure":17.5,"value_usual":-0.7,"pressure_vs_usual":"Raises game","record_lb":1.12,"usual_level":-0.46,"positive_match_pct":36,"rating":0.43,"top10_chance_pct":12,"ipl_share_pct":100,"econ_pressure":8.48,"econ_usual":8.99,"wkts_pressure":21.0},{"player_id":"1758","rank":30,"player":"Patrick Cummins","pressure_balls":178,"pressure_matches":14,"value_pressure":24.5,"value_usual":-2.1,"pressure_vs_usual":"Raises game","record_lb":1.06,"usual_level":-1.1,"positive_match_pct":64,"rating":0.37,"top10_chance_pct":4,"ipl_share_pct":65,"econ_pressure":8.35,"econ_usual":9.56,"wkts_pressure":9.0},{"player_id":"3298","rank":31,"player":"Jofra Archer","pressure_balls":182,"pressure_matches":19,"value_pressure":6.0,"value_usual":10.2,"pressure_vs_usual":"Holds level","record_lb":-0.72,"usual_level":5.58,"positive_match_pct":42,"rating":0.34,"top10_chance_pct":5,"ipl_share_pct":54,"econ_pressure":8.49,"econ_usual":9.17,"wkts_pressure":13.0},{"player_id":"1612","rank":32,"player":"Yuzvendra Chahal","pressure_balls":452,"pressure_matches":43,"value_pressure":6.9,"value_usual":5.0,"pressure_vs_usual":"Holds level","record_lb":-0.25,"usual_level":3.28,"positive_match_pct":51,"rating":0.31,"top10_chance_pct":6,"ipl_share_pct":80,"econ_pressure":8.76,"econ_usual":8.59,"wkts_pressure":34.0},{"player_id":"7325","rank":33,"player":"Harpreet Brar","pressure_balls":148,"pressure_matches":13,"value_pressure":17.1,"value_usual":11.0,"pressure_vs_usual":"Holds level","record_lb":-0.5,"usual_level":4.05,"positive_match_pct":38,"rating":0.3,"top10_chance_pct":8,"ipl_share_pct":100,"econ_pressure":8.48,"econ_usual":8.08,"wkts_pressure":8.0},{"player_id":"829","rank":34,"player":"Mitchell Starc","pressure_balls":159,"pressure_matches":15,"value_pressure":52.6,"value_usual":-19.6,"pressure_vs_usual":"Raises game","record_lb":2.29,"usual_level":-8.2,"positive_match_pct":53,"rating":0.22,"top10_chance_pct":9,"ipl_share_pct":89,"econ_pressure":9.66,"econ_usual":10.05,"wkts_pressure":24.0},{"player_id":"1566","rank":35,"player":"Mohammed Shami","pressure_balls":276,"pressure_matches":27,"value_pressure":6.4,"value_usual":5.8,"pressure_vs_usual":"Holds level","record_lb":-0.61,"usual_level":3.09,"positive_match_pct":41,"rating":0.21,"top10_chance_pct":4,"ipl_share_pct":100,"econ_pressure":8.94,"econ_usual":8.68,"wkts_pressure":20.0},{"player_id":"1813","rank":36,"player":"Deepak Chahar","pressure_balls":154,"pressure_matches":16,"value_pressure":2.9,"value_usual":7.9,"pressure_vs_usual":"Holds level","record_lb":-0.76,"usual_level":3.57,"positive_match_pct":44,"rating":0.2,"top10_chance_pct":0,"ipl_share_pct":79,"econ_pressure":9.52,"econ_usual":8.81,"wkts_pressure":10.0},{"player_id":"2984","rank":37,"player":"Sikandar Raza","pressure_balls":168,"pressure_matches":13,"value_pressure":17.1,"value_usual":-3.7,"pressure_vs_usual":"Holds level","record_lb":0.23,"usual_level":-1.92,"positive_match_pct":46,"rating":0.1,"top10_chance_pct":1,"ipl_share_pct":4,"econ_pressure":5.82,"econ_usual":7.41,"wkts_pressure":8.0},{"player_id":"2681","rank":38,"player":"Taskin Ahmed","pressure_balls":248,"pressure_matches":26,"value_pressure":7.9,"value_usual":0.3,"pressure_vs_usual":"Holds level","record_lb":-0.39,"usual_level":0.13,"positive_match_pct":62,"rating":0.07,"top10_chance_pct":2,"ipl_share_pct":0,"econ_pressure":7.54,"econ_usual":8.19,"wkts_pressure":17.0},{"player_id":"4641","rank":39,"player":"Lungi Ngidi","pressure_balls":153,"pressure_matches":19,"value_pressure":-9.2,"value_usual":14.2,"pressure_vs_usual":"Drops","record_lb":-2.03,"usual_level":6.05,"positive_match_pct":47,"rating":0.03,"top10_chance_pct":1,"ipl_share_pct":30,"econ_pressure":9.7,"econ_usual":8.75,"wkts_pressure":9.0},{"player_id":"4816","rank":40,"player":"Khaleel Ahmed","pressure_balls":186,"pressure_matches":19,"value_pressure":11.7,"value_usual":-3.1,"pressure_vs_usual":"Holds level","record_lb":-0.18,"usual_level":-1.69,"positive_match_pct":63,"rating":0.0,"top10_chance_pct":1,"ipl_share_pct":85,"econ_pressure":9.24,"econ_usual":8.92,"wkts_pressure":12.0},{"player_id":"58246","rank":41,"player":"Prince Yadav","pressure_balls":124,"pressure_matches":15,"value_pressure":-9.6,"value_usual":14.9,"pressure_vs_usual":"Holds level","record_lb":-2.16,"usual_level":6.0,"positive_match_pct":47,"rating":-0.01,"top10_chance_pct":2,"ipl_share_pct":72,"econ_pressure":10.99,"econ_usual":8.85,"wkts_pressure":5.0},{"player_id":"403","rank":42,"player":"Umesh Yadav","pressure_balls":155,"pressure_matches":18,"value_pressure":12.7,"value_usual":-8.1,"pressure_vs_usual":"Holds level","record_lb":-0.1,"usual_level":-2.6,"positive_match_pct":50,"rating":-0.04,"top10_chance_pct":1,"ipl_share_pct":93,"econ_pressure":7.35,"econ_usual":9.05,"wkts_pressure":9.0},{"player_id":"2878","rank":43,"player":"Mohit Sharma","pressure_balls":128,"pressure_matches":14,"value_pressure":-0.9,"value_usual":2.9,"pressure_vs_usual":"Holds level","record_lb":-1.05,"usual_level":1.08,"positive_match_pct":57,"rating":-0.04,"top10_chance_pct":1,"ipl_share_pct":100,"econ_pressure":10.06,"econ_usual":9.46,"wkts_pressure":9.0},{"player_id":"7364","rank":44,"player":"Haris Rauf","pressure_balls":365,"pressure_matches":30,"value_pressure":-1.2,"value_usual":10.5,"pressure_vs_usual":"Holds level","record_lb":-1.99,"usual_level":4.41,"positive_match_pct":50,"rating":-0.07,"top10_chance_pct":1,"ipl_share_pct":0,"econ_pressure":8.76,"econ_usual":8.63,"wkts_pressure":25.0},{"player_id":"6464","rank":45,"player":"Arshdeep Singh","pressure_balls":801,"pressure_matches":75,"value_pressure":-2.5,"value_usual":9.9,"pressure_vs_usual":"Drops","record_lb":-2.75,"usual_level":7.34,"positive_match_pct":44,"rating":-0.07,"top10_chance_pct":4,"ipl_share_pct":54,"econ_pressure":9.98,"econ_usual":8.87,"wkts_pressure":48.0},{"player_id":"19316","rank":46,"player":"Maheesh Theekshana","pressure_balls":397,"pressure_matches":38,"value_pressure":-1.6,"value_usual":4.1,"pressure_vs_usual":"Holds level","record_lb":-1.61,"usual_level":2.78,"positive_match_pct":45,"rating":-0.07,"top10_chance_pct":0,"ipl_share_pct":39,"econ_pressure":7.45,"econ_usual":7.75,"wkts_pressure":14.0},{"player_id":"479","rank":47,"player":"Adil Rashid","pressure_balls":162,"pressure_matches":14,"value_pressure":-4.6,"value_usual":5.1,"pressure_vs_usual":"Holds level","record_lb":-1.73,"usual_level":2.85,"positive_match_pct":57,"rating":-0.1,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":7.83,"econ_usual":7.99,"wkts_pressure":7.0},{"player_id":"2320","rank":48,"player":"Trent Boult","pressure_balls":358,"pressure_matches":37,"value_pressure":2.0,"value_usual":1.6,"pressure_vs_usual":"Holds level","record_lb":-1.26,"usual_level":0.91,"positive_match_pct":51,"rating":-0.11,"top10_chance_pct":2,"ipl_share_pct":89,"econ_pressure":9.11,"econ_usual":8.24,"wkts_pressure":17.0},{"player_id":"4807","rank":49,"player":"Joshua Little","pressure_balls":197,"pressure_matches":16,"value_pressure":5.7,"value_usual":-3.3,"pressure_vs_usual":"Holds level","record_lb":-0.74,"usual_level":-1.26,"positive_match_pct":44,"rating":-0.11,"top10_chance_pct":1,"ipl_share_pct":22,"econ_pressure":8.04,"econ_usual":8.23,"wkts_pressure":10.0},{"player_id":"4265","rank":50,"player":"T Natarajan","pressure_balls":225,"pressure_matches":24,"value_pressure":2.7,"value_usual":0.1,"pressure_vs_usual":"Holds level","record_lb":-1.19,"usual_level":0.07,"positive_match_pct":58,"rating":-0.15,"top10_chance_pct":0,"ipl_share_pct":100,"econ_pressure":10.08,"econ_usual":9.58,"wkts_pressure":15.0},{"player_id":"29888","rank":51,"player":"Harshit Rana","pressure_balls":239,"pressure_matches":22,"value_pressure":-2.5,"value_usual":3.2,"pressure_vs_usual":"Holds level","record_lb":-1.55,"usual_level":1.39,"positive_match_pct":50,"rating":-0.15,"top10_chance_pct":0,"ipl_share_pct":69,"econ_pressure":9.93,"econ_usual":9.37,"wkts_pressure":17.0},{"player_id":"6161","rank":52,"player":"Rahul Chahar","pressure_balls":170,"pressure_matches":14,"value_pressure":-11.0,"value_usual":11.1,"pressure_vs_usual":"Drops","record_lb":-2.41,"usual_level":4.67,"positive_match_pct":43,"rating":-0.16,"top10_chance_pct":0,"ipl_share_pct":100,"econ_pressure":9.15,"econ_usual":7.9,"wkts_pressure":5.0},{"player_id":"4489","rank":53,"player":"Prasidh Krishna","pressure_balls":254,"pressure_matches":23,"value_pressure":-4.6,"value_usual":6.6,"pressure_vs_usual":"Holds level","record_lb":-2.15,"usual_level":3.44,"positive_match_pct":48,"rating":-0.17,"top10_chance_pct":2,"ipl_share_pct":90,"econ_pressure":9.58,"econ_usual":9.02,"wkts_pressure":15.0},{"player_id":"5809","rank":54,"player":"Naveen ul Haq","pressure_balls":210,"pressure_matches":20,"value_pressure":-13.0,"value_usual":12.1,"pressure_vs_usual":"Drops","record_lb":-2.6,"usual_level":4.84,"positive_match_pct":30,"rating":-0.2,"top10_chance_pct":0,"ipl_share_pct":42,"econ_pressure":9.64,"econ_usual":8.58,"wkts_pressure":9.0},{"player_id":"4837","rank":55,"player":"Obed McCoy","pressure_balls":213,"pressure_matches":20,"value_pressure":5.2,"value_usual":-10.9,"pressure_vs_usual":"Holds level","record_lb":-0.46,"usual_level":-3.72,"positive_match_pct":50,"rating":-0.2,"top10_chance_pct":0,"ipl_share_pct":34,"econ_pressure":9.53,"econ_usual":9.44,"wkts_pressure":15.0},{"player_id":"4874","rank":56,"player":"Richard Ngarava","pressure_balls":202,"pressure_matches":21,"value_pressure":1.0,"value_usual":-3.7,"pressure_vs_usual":"Holds level","record_lb":-1.06,"usual_level":-1.63,"positive_match_pct":38,"rating":-0.22,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":8.92,"econ_usual":7.86,"wkts_pressure":14.0},{"player_id":"6806","rank":57,"player":"Tushar Deshpande","pressure_balls":210,"pressure_matches":18,"value_pressure":-2.5,"value_usual":-2.5,"pressure_vs_usual":"Holds level","record_lb":-1.29,"usual_level":-1.21,"positive_match_pct":67,"rating":-0.25,"top10_chance_pct":0,"ipl_share_pct":96,"econ_pressure":10.2,"econ_usual":9.79,"wkts_pressure":10.0},{"player_id":"7240","rank":58,"player":"FazalHaq Farooqi","pressure_balls":291,"pressure_matches":27,"value_pressure":-4.1,"value_usual":0.3,"pressure_vs_usual":"Holds level","record_lb":-1.64,"usual_level":0.16,"positive_match_pct":44,"rating":-0.26,"top10_chance_pct":0,"ipl_share_pct":11,"econ_pressure":8.13,"econ_usual":8.24,"wkts_pressure":12.0},{"player_id":"7503","rank":59,"player":"Ravi Bishnoi","pressure_balls":595,"pressure_matches":44,"value_pressure":-4.3,"value_usual":7.0,"pressure_vs_usual":"Holds level","record_lb":-2.83,"usual_level":4.68,"positive_match_pct":57,"rating":-0.27,"top10_chance_pct":1,"ipl_share_pct":56,"econ_pressure":8.52,"econ_usual":8.28,"wkts_pressure":24.0},{"player_id":"19312","rank":60,"player":"Nuwan Thushara","pressure_balls":145,"pressure_matches":16,"value_pressure":6.0,"value_usual":-2.6,"pressure_vs_usual":"Holds level","record_lb":-1.42,"usual_level":-1.12,"positive_match_pct":25,"rating":-0.28,"top10_chance_pct":2,"ipl_share_pct":22,"econ_pressure":9.66,"econ_usual":8.76,"wkts_pressure":11.0},{"player_id":"3653","rank":61,"player":"Avesh Khan","pressure_balls":456,"pressure_matches":40,"value_pressure":6.0,"value_usual":-10.7,"pressure_vs_usual":"Raises game","record_lb":-0.11,"usual_level":-6.35,"positive_match_pct":45,"rating":-0.29,"top10_chance_pct":0,"ipl_share_pct":82,"econ_pressure":8.92,"econ_usual":9.87,"wkts_pressure":28.0},{"player_id":"2636","rank":62,"player":"Adam Zampa","pressure_balls":164,"pressure_matches":15,"value_pressure":2.5,"value_usual":-6.5,"pressure_vs_usual":"Holds level","record_lb":-0.92,"usual_level":-3.33,"positive_match_pct":47,"rating":-0.3,"top10_chance_pct":0,"ipl_share_pct":11,"econ_pressure":7.9,"econ_usual":8.52,"wkts_pressure":10.0},{"player_id":"1389","rank":63,"player":"Sean Abbott","pressure_balls":158,"pressure_matches":14,"value_pressure":3.7,"value_usual":-12.7,"pressure_vs_usual":"Holds level","record_lb":-0.99,"usual_level":-3.3,"positive_match_pct":57,"rating":-0.32,"top10_chance_pct":0,"ipl_share_pct":4,"econ_pressure":8.47,"econ_usual":10.5,"wkts_pressure":11.0},{"player_id":"5939","rank":64,"player":"Cameron Green","pressure_balls":159,"pressure_matches":15,"value_pressure":10.0,"value_usual":-18.1,"pressure_vs_usual":"Raises game","record_lb":0.02,"usual_level":-7.6,"positive_match_pct":53,"rating":-0.34,"top10_chance_pct":0,"ipl_share_pct":65,"econ_pressure":8.11,"econ_usual":9.93,"wkts_pressure":6.0},{"player_id":"305","rank":65,"player":"Ravichandran Ashwin","pressure_balls":271,"pressure_matches":21,"value_pressure":-6.0,"value_usual":3.2,"pressure_vs_usual":"Holds level","record_lb":-2.39,"usual_level":1.84,"positive_match_pct":52,"rating":-0.34,"top10_chance_pct":1,"ipl_share_pct":94,"econ_pressure":8.61,"econ_usual":7.69,"wkts_pressure":12.0},{"player_id":"2261","rank":66,"player":"Harshal Patel","pressure_balls":435,"pressure_matches":39,"value_pressure":-2.9,"value_usual":1.9,"pressure_vs_usual":"Holds level","record_lb":-2.28,"usual_level":1.1,"positive_match_pct":51,"rating":-0.36,"top10_chance_pct":1,"ipl_share_pct":72,"econ_pressure":10.16,"econ_usual":8.99,"wkts_pressure":24.0},{"player_id":"1487","rank":67,"player":"Adam Milne","pressure_balls":138,"pressure_matches":14,"value_pressure":-10.9,"value_usual":1.4,"pressure_vs_usual":"Holds level","record_lb":-2.18,"usual_level":0.44,"positive_match_pct":50,"rating":-0.38,"top10_chance_pct":0,"ipl_share_pct":6,"econ_pressure":10.49,"econ_usual":9.08,"wkts_pressure":13.0},{"player_id":"7344","rank":68,"player":"Shoriful Islam","pressure_balls":180,"pressure_matches":21,"value_pressure":10.3,"value_usual":-15.5,"pressure_vs_usual":"Raises game","record_lb":-0.57,"usual_level":-6.32,"positive_match_pct":57,"rating":-0.41,"top10_chance_pct":1,"ipl_share_pct":0,"econ_pressure":7.51,"econ_usual":8.62,"wkts_pressure":10.0},{"player_id":"8746","rank":69,"player":"Vaibhav Arora","pressure_balls":173,"pressure_matches":17,"value_pressure":-7.8,"value_usual":-2.1,"pressure_vs_usual":"Holds level","record_lb":-2.14,"usual_level":-0.97,"positive_match_pct":47,"rating":-0.46,"top10_chance_pct":0,"ipl_share_pct":100,"econ_pressure":10.48,"econ_usual":9.65,"wkts_pressure":10.0},{"player_id":"278","rank":70,"player":"Tim Southee","pressure_balls":200,"pressure_matches":18,"value_pressure":-23.0,"value_usual":8.9,"pressure_vs_usual":"Drops","record_lb":-3.51,"usual_level":3.73,"positive_match_pct":22,"rating":-0.51,"top10_chance_pct":0,"ipl_share_pct":44,"econ_pressure":9.05,"econ_usual":8.08,"wkts_pressure":9.0},{"player_id":"2633","rank":71,"player":"Jason Holder","pressure_balls":489,"pressure_matches":49,"value_pressure":-11.8,"value_usual":9.4,"pressure_vs_usual":"Drops","record_lb":-4.12,"usual_level":5.94,"positive_match_pct":37,"rating":-0.52,"top10_chance_pct":0,"ipl_share_pct":24,"econ_pressure":9.7,"econ_usual":8.73,"wkts_pressure":31.0},{"player_id":"7322","rank":72,"player":"Yash Dayal","pressure_balls":204,"pressure_matches":18,"value_pressure":-14.2,"value_usual":1.4,"pressure_vs_usual":"Holds level","record_lb":-2.79,"usual_level":0.61,"positive_match_pct":50,"rating":-0.53,"top10_chance_pct":0,"ipl_share_pct":100,"econ_pressure":10.29,"econ_usual":9.42,"wkts_pressure":9.0},{"player_id":"2315","rank":73,"player":"Reece Topley","pressure_balls":141,"pressure_matches":13,"value_pressure":-29.1,"value_usual":6.1,"pressure_vs_usual":"Drops","record_lb":-3.31,"usual_level":2.19,"positive_match_pct":38,"rating":-0.56,"top10_chance_pct":0,"ipl_share_pct":7,"econ_pressure":10.07,"econ_usual":8.48,"wkts_pressure":8.0},{"player_id":"2411","rank":74,"player":"Sandeep Sharma","pressure_balls":265,"pressure_matches":24,"value_pressure":-12.3,"value_usual":1.5,"pressure_vs_usual":"Holds level","record_lb":-2.97,"usual_level":0.68,"positive_match_pct":38,"rating":-0.57,"top10_chance_pct":0,"ipl_share_pct":100,"econ_pressure":10.48,"econ_usual":8.52,"wkts_pressure":14.0},{"player_id":"5738","rank":75,"player":"Xavier Bartlett","pressure_balls":120,"pressure_matches":12,"value_pressure":-15.6,"value_usual":-13.9,"pressure_vs_usual":"Holds level","record_lb":-1.69,"usual_level":-4.72,"positive_match_pct":42,"rating":-0.59,"top10_chance_pct":0,"ipl_share_pct":27,"econ_pressure":9.31,"econ_usual":9.49,"wkts_pressure":4.0},{"player_id":"8049","rank":76,"player":"Naseem Shah","pressure_balls":139,"pressure_matches":12,"value_pressure":-10.0,"value_usual":-18.3,"pressure_vs_usual":"Holds level","record_lb":-1.36,"usual_level":-6.21,"positive_match_pct":50,"rating":-0.61,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":9.25,"econ_usual":8.49,"wkts_pressure":8.0},{"player_id":"21784","rank":77,"player":"Brad Evans","pressure_balls":127,"pressure_matches":13,"value_pressure":-36.5,"value_usual":13.8,"pressure_vs_usual":"Drops","record_lb":-3.89,"usual_level":3.75,"positive_match_pct":31,"rating":-0.61,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":11.45,"econ_usual":8.16,"wkts_pressure":9.0},{"player_id":"22134","rank":78,"player":"Luke Jongwe","pressure_balls":135,"pressure_matches":12,"value_pressure":-19.0,"value_usual":-15.6,"pressure_vs_usual":"Holds level","record_lb":-2.29,"usual_level":-3.09,"positive_match_pct":42,"rating":-0.64,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":8.88,"econ_usual":9.52,"wkts_pressure":9.0},{"player_id":"5041","rank":79,"player":"Mukesh Kumar","pressure_balls":249,"pressure_matches":22,"value_pressure":-9.0,"value_usual":-6.9,"pressure_vs_usual":"Holds level","record_lb":-2.3,"usual_level":-3.57,"positive_match_pct":55,"rating":-0.68,"top10_chance_pct":0,"ipl_share_pct":56,"econ_pressure":9.57,"econ_usual":10.28,"wkts_pressure":10.0},{"player_id":"2526","rank":80,"player":"Ish Sodhi","pressure_balls":141,"pressure_matches":13,"value_pressure":-1.0,"value_usual":-12.4,"pressure_vs_usual":"Holds level","record_lb":-1.54,"usual_level":-6.59,"positive_match_pct":54,"rating":-0.68,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":8.76,"econ_usual":8.56,"wkts_pressure":8.0},{"player_id":"5379","rank":81,"player":"Mark Adair","pressure_balls":250,"pressure_matches":22,"value_pressure":-13.7,"value_usual":-1.8,"pressure_vs_usual":"Holds level","record_lb":-3.05,"usual_level":-0.7,"positive_match_pct":50,"rating":-0.68,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":9.7,"econ_usual":7.86,"wkts_pressure":21.0},{"player_id":"2639","rank":82,"player":"Marcus Stoinis","pressure_balls":225,"pressure_matches":24,"value_pressure":-11.2,"value_usual":-9.3,"pressure_vs_usual":"Holds level","record_lb":-2.47,"usual_level":-3.54,"positive_match_pct":42,"rating":-0.72,"top10_chance_pct":0,"ipl_share_pct":41,"econ_pressure":10.49,"econ_usual":9.53,"wkts_pressure":16.0},{"player_id":"5441","rank":83,"player":"Barry McCarthy","pressure_balls":193,"pressure_matches":19,"value_pressure":-14.5,"value_usual":-15.3,"pressure_vs_usual":"Holds level","record_lb":-2.46,"usual_level":-5.04,"positive_match_pct":42,"rating":-0.82,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":8.41,"econ_usual":8.86,"wkts_pressure":7.0},{"player_id":"3174","rank":84,"player":"Matt Henry","pressure_balls":126,"pressure_matches":14,"value_pressure":-14.9,"value_usual":-25.3,"pressure_vs_usual":"Holds level","record_lb":-1.96,"usual_level":-8.88,"positive_match_pct":36,"rating":-0.94,"top10_chance_pct":0,"ipl_share_pct":27,"econ_pressure":9.37,"econ_usual":9.4,"wkts_pressure":7.0},{"player_id":"2847","rank":85,"player":"Shardul Thakur","pressure_balls":231,"pressure_matches":21,"value_pressure":-15.8,"value_usual":-11.4,"pressure_vs_usual":"Holds level","record_lb":-3.23,"usual_level":-5.4,"positive_match_pct":29,"rating":-1.04,"top10_chance_pct":0,"ipl_share_pct":93,"econ_pressure":11.28,"econ_usual":10.08,"wkts_pressure":15.0},{"player_id":"7094","rank":86,"player":"Curtis Campher","pressure_balls":124,"pressure_matches":13,"value_pressure":-38.6,"value_usual":-20.5,"pressure_vs_usual":"Holds level","record_lb":-3.62,"usual_level":-4.37,"positive_match_pct":31,"rating":-1.08,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":8.73,"econ_usual":8.7,"wkts_pressure":1.0},{"player_id":"2399","rank":87,"player":"Dushmantha Chameera","pressure_balls":248,"pressure_matches":30,"value_pressure":-27.4,"value_usual":3.9,"pressure_vs_usual":"Drops","record_lb":-5.27,"usual_level":2.01,"positive_match_pct":37,"rating":-1.09,"top10_chance_pct":0,"ipl_share_pct":37,"econ_pressure":10.44,"econ_usual":8.32,"wkts_pressure":11.0},{"player_id":"1107","rank":88,"player":"Mohammad Nabi","pressure_balls":178,"pressure_matches":15,"value_pressure":-25.1,"value_usual":-15.4,"pressure_vs_usual":"Holds level","record_lb":-3.51,"usual_level":-5.67,"positive_match_pct":40,"rating":-1.13,"top10_chance_pct":0,"ipl_share_pct":2,"econ_pressure":8.63,"econ_usual":8.29,"wkts_pressure":8.0},{"player_id":"7270","rank":89,"player":"Anrich Nortje","pressure_balls":176,"pressure_matches":17,"value_pressure":-18.4,"value_usual":-21.0,"pressure_vs_usual":"Holds level","record_lb":-2.84,"usual_level":-9.12,"positive_match_pct":29,"rating":-1.18,"top10_chance_pct":0,"ipl_share_pct":82,"econ_pressure":10.04,"econ_usual":10.52,"wkts_pressure":5.0},{"player_id":"7808","rank":90,"player":"Marco Jansen","pressure_balls":246,"pressure_matches":24,"value_pressure":-26.5,"value_usual":0.0,"pressure_vs_usual":"Drops","record_lb":-5.18,"usual_level":0.02,"positive_match_pct":33,"rating":-1.19,"top10_chance_pct":0,"ipl_share_pct":77,"econ_pressure":10.83,"econ_usual":9.48,"wkts_pressure":8.0},{"player_id":"7905","rank":91,"player":"Tanzim Sakib","pressure_balls":230,"pressure_matches":21,"value_pressure":-12.6,"value_usual":-17.3,"pressure_vs_usual":"Holds level","record_lb":-3.69,"usual_level":-5.94,"positive_match_pct":38,"rating":-1.2,"top10_chance_pct":0,"ipl_share_pct":0,"econ_pressure":10.25,"econ_usual":8.2,"wkts_pressure":14.0},{"player_id":"4409","rank":92,"player":"Sam Curran","pressure_balls":289,"pressure_matches":30,"value_pressure":-13.3,"value_usual":-13.6,"pressure_vs_usual":"Holds level","record_lb":-3.34,"usual_level":-7.48,"positive_match_pct":43,"rating":-1.21,"top10_chance_pct":0,"ipl_share_pct":61,"econ_pressure":10.51,"econ_usual":9.3,"wkts_pressure":17.0},{"player_id":"1318","rank":93,"player":"Andre Russell","pressure_balls":238,"pressure_matches":24,"value_pressure":-25.6,"value_usual":-1.0,"pressure_vs_usual":"Drops","record_lb":-5.17,"usual_level":-0.38,"positive_match_pct":42,"rating":-1.22,"top10_chance_pct":0,"ipl_share_pct":74,"econ_pressure":11.73,"econ_usual":10.68,"wkts_pressure":21.0},{"player_id":"6676","rank":94,"player":"Azmatullah Omarzai","pressure_balls":313,"pressure_matches":32,"value_pressure":-30.0,"value_usual":5.1,"pressure_vs_usual":"Drops","record_lb":-5.88,"usual_level":2.4,"positive_match_pct":22,"rating":-1.22,"top10_chance_pct":0,"ipl_share_pct":32,"econ_pressure":9.38,"econ_usual":8.42,"wkts_pressure":11.0},{"player_id":"3275","rank":95,"player":"Alzarri Joseph","pressure_balls":359,"pressure_matches":30,"value_pressure":-17.5,"value_usual":-9.8,"pressure_vs_usual":"Holds level","record_lb":-4.68,"usual_level":-4.76,"positive_match_pct":33,"rating":-1.38,"top10_chance_pct":0,"ipl_share_pct":33,"econ_pressure":10.11,"econ_usual":9.58,"wkts_pressure":22.0},{"player_id":"6726","rank":96,"player":"Romario Shepherd","pressure_balls":308,"pressure_matches":31,"value_pressure":-12.6,"value_usual":-21.8,"pressure_vs_usual":"Holds level","record_lb":-3.19,"usual_level":-12.93,"positive_match_pct":45,"rating":-1.53,"top10_chance_pct":0,"ipl_share_pct":14,"econ_pressure":10.08,"econ_usual":10.56,"wkts_pressure":22.0},{"player_id":"3330","rank":97,"player":"Hardik Pandya","pressure_balls":337,"pressure_matches":38,"value_pressure":-42.0,"value_usual":-4.2,"pressure_vs_usual":"Drops","record_lb":-8.26,"usual_level":-2.69,"positive_match_pct":21,"rating":-2.18,"top10_chance_pct":0,"ipl_share_pct":31,"econ_pressure":9.76,"econ_usual":8.82,"wkts_pressure":10.0}],"reliability":[{"weights":"100 / 0","chosen":false,"batters":0.1,"bowlers":0.17},{"weights":"80 / 20","chosen":false,"batters":0.19,"bowlers":0.31},{"weights":"60 / 40","chosen":true,"batters":0.32,"bowlers":0.46},{"weights":"40 / 60","chosen":false,"batters":0.43,"bowlers":0.56},{"weights":"0 / 100","chosen":false,"batters":0.46,"bowlers":0.52}],"summary":[{"matches":788,"deliveries":188151,"ipl_matches":357,"t20i_matches":431,"pressure_deliveries":37631,"pressure_share_pct":20,"eligible_batters":87,"eligible_bowlers":97,"swing_ordinary":0.94,"swing_pressure":2.64,"balance_ordinary_pct":47.0,"balance_pressure_pct":74.0,"close_ordinary_pct":28.0,"close_pressure_pct":47.0,"wickets_ordinary":5.3,"wickets_pressure":6.9,"run_rate_ordinary":8.85,"run_rate_pressure":9.04}]};
+    const drawings = {};
+    function run(name) {
+      const fn = drawings[name];
+      if (!fn) return;
+      document.querySelectorAll('[data-draw="' + name + '"]').forEach(function (el) {
+        if (el.closest('[hidden]')) return;
+        try { fn(el); } catch (err) { console.error(name, err); }
+      });
+    }
+    function runAll() { Object.keys(drawings).forEach(run); }
+    window.dash = {
+      colors: ['var(--series-a)', 'var(--series-b)'],
+      data: function (id) { return DATA[id] ? { status: 'ok', data: DATA[id] } : { status: 'missing', data: [] }; },
+      draw: function (name, fn) { if (fn) drawings[name] = fn; else run(name); },
+      setLink: function (name) { try { history.replaceState(null, '', '#' + name); } catch (e) { location.hash = name; } },
+    };
+    let timer = null;
+    window.addEventListener('resize', function () { clearTimeout(timer); timer = setTimeout(runAll, 120); });
+    window.addEventListener('DOMContentLoaded', function () {
+      runAll();
+      new MutationObserver(runAll).observe(document.getElementById('dash-root'), { attributes: true, attributeFilter: ['hidden'], subtree: true });
+    });
+  })();
+</script>
+<div id="dash-root">
+<style>
+  .pr-page { display: flex; flex-direction: column; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  .pr-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .pr-lede { margin: var(--cds-gap-sm) 0 0; font-size: var(--cds-font-size-heading); max-width: 62ch; text-wrap: pretty; }
+  .pr-h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
+  .pr-note { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 75ch; }
+  .pr-block { display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+  .pr-disc { display: flex; flex-direction: column; gap: var(--cds-gap-xl); }
+  .pr-disc[hidden], .pr-disc.pr-off { display: none; }
+  .pr-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--cds-gap-md); }
+  .pr-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
+  .pr-tile-label { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .pr-tile-num { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .pr-tile-sub { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .pr-tabs { display: flex; gap: var(--cds-gap-xs); flex-wrap: wrap; }
+  .pr-tab { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-md); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg-muted); cursor: pointer; }
+  .pr-tab[aria-pressed="true"] { background: var(--color-panel); color: var(--color-fg); font-weight: var(--cds-font-weight-medium); border-color: var(--color-fg-muted); }
+  .pr-tab:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  .pr-chart { position: relative; min-height: 260px; min-width: 0; }
+  .pr-chart-tall { min-height: 380px; }
+  .pr-chart svg { display: block; overflow: visible; }
+  .pr-axis text, .pr-tick { fill: var(--cds-text-secondary); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+  .pr-axis path, .pr-axis line { stroke: var(--cds-chart-axis); }
+  .pr-name { fill: var(--color-fg); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+  .pr-val { fill: var(--color-fg); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+  .pr-legend { display: flex; gap: var(--cds-gap-md); flex-wrap: wrap; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .pr-key { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+  .pr-sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; background: var(--cds-chart-muted); }
+  .pr-tip { position: absolute; z-index: 2; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); box-shadow: var(--cds-shadow-popover); border-radius: var(--cds-radius); padding: var(--cds-pad-sm); font-size: var(--cds-font-size-caption); color: var(--cds-text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pr-tip-h { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .pr-scroll { overflow-x: auto; min-width: 0; }
+  .pr-table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .pr-table th { text-align: right; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: bottom; white-space: nowrap; }
+  .pr-table td { text-align: right; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .pr-table .pr-left { text-align: left; }
+  .pr-table .pr-top td { font-weight: var(--cds-font-weight-medium); }
+  .pr-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--color-border-line); color: var(--color-fg-muted); }
+  .pr-pill-up { color: var(--color-ok); border-color: var(--color-ok); }
+  .pr-pill-down { color: var(--color-bad); border-color: var(--color-bad); }
+  .pr-check { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .pr-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--cds-gap-xl); }
+  .pr-details { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 75ch; }
+  .pr-details summary { cursor: pointer; color: var(--color-fg); }
+  .pr-details p { margin: var(--cds-gap-sm) 0 0; }
+  .pr-page [data-dash-source-state=refreshing] { opacity: .5; }
+</style>
+
+<div class="pr-page">
+  <header id="top">
+    <h1 class="pr-title">Pressure Ratings</h1>
+    <p class="pr-lede"><b data-draw="lead" data-source="batters" data-field="player" data-where="rank=1">—</b> is the highest-rated batter under pressure and <b data-draw="lead" data-source="bowlers" data-field="player" data-where="rank=1">—</b> the highest-rated bowler, across IPL and T20I matches from 2022 to 2026.</p>
+  </header>
+
+  <section class="pr-tiles" id="scope">
+    <div class="pr-tile" id="tile-matches">
+      <span class="pr-tile-label">Matches analysed</span>
+      <span class="pr-tile-num" data-draw="sum" data-fmt="int" data-source="summary" data-field="matches" data-row="0">—</span>
+      <span class="pr-tile-sub"><span data-draw="sum" data-fmt="int" data-source="summary" data-field="ipl_matches" data-row="0">—</span> IPL, <span data-draw="sum" data-fmt="int" data-source="summary" data-field="t20i_matches" data-row="0">—</span> T20I</span>
+    </div>
+    <div class="pr-tile" id="tile-deliveries">
+      <span class="pr-tile-label">Deliveries analysed</span>
+      <span class="pr-tile-num" data-draw="sum" data-fmt="int" data-source="summary" data-field="deliveries" data-row="0">—</span>
+      <span class="pr-tile-sub">2022 to 2026</span>
+    </div>
+    <div class="pr-tile" id="tile-pressure">
+      <span class="pr-tile-label">Classed as high pressure</span>
+      <span class="pr-tile-num" data-draw="sum" data-fmt="pct" data-source="summary" data-field="pressure_share_pct" data-row="0">—</span>
+      <span class="pr-tile-sub"><span data-draw="sum" data-fmt="int" data-source="summary" data-field="pressure_deliveries" data-row="0">—</span> deliveries</span>
+    </div>
+    <div class="pr-tile" id="tile-players">
+      <span class="pr-tile-label">Players with enough pressure balls to rate</span>
+      <span class="pr-tile-num"><span data-draw="sum" data-fmt="int" data-source="summary" data-field="eligible_batters" data-row="0">—</span> + <span data-draw="sum" data-fmt="int" data-source="summary" data-field="eligible_bowlers" data-row="0">—</span></span>
+      <span class="pr-tile-sub">batters + bowlers</span>
+    </div>
+  </section>
+
+  <p class="pr-note" id="definition">Value is runs added per 100 balls compared with an average player in the same match situation, against the same quality of opponent. For bowlers it is runs saved. A ball is high pressure when the match result is expected to swing most on it.</p>
+
+  <nav class="pr-tabs" aria-label="Discipline" id="tabs">
+    <button class="pr-tab" type="button" id="tab-batters" data-show="batters" aria-pressed="true">Batters</button>
+    <button class="pr-tab" type="button" id="tab-bowlers" data-show="bowlers" aria-pressed="false">Bowlers</button>
+  </nav>
+
+  <section class="pr-disc" id="batters">
+    <div class="pr-block" id="batters-top10">
+      <h2 class="pr-h2">Top 10 batters: value under pressure against their usual value</h2>
+      <div class="pr-legend"><span class="pr-key"><span class="pr-sw pr-sw-a"></span>High-pressure balls</span><span class="pr-key"><span class="pr-sw"></span>Ordinary balls</span></div>
+      <div class="pr-chart pr-chart-tall" data-draw="bars" data-source="batters">—</div>
+    </div>
+    <div class="pr-block" id="batters-field">
+      <h2 class="pr-h2">Every rated batter: pressure record against usual level</h2>
+      <p class="pr-note">Up: conservative pressure record. Across: usual level. Both in runs per 100 balls after adjusting for sample size. The top 10 are highlighted.</p>
+      <div class="pr-chart pr-chart-tall" data-draw="scatter" data-source="batters">—</div>
+    </div>
+    <div class="pr-block" id="batters-table">
+      <h2 class="pr-h2">Batter rankings</h2>
+      <label class="pr-check"><input type="checkbox" id="batters-all" data-all="batters"> Show every rated batter</label>
+      <div class="pr-scroll">
+        <table class="pr-table" data-source="batters" data-row-key="player_id">
+          <thead><tr>
+            <th data-field="rank">Rank</th>
+            <th class="pr-left" data-field="player">Batter</th>
+            <th data-field="pressure_balls">Pressure balls</th>
+            <th data-field="value_pressure">Value: pressure</th>
+            <th data-field="value_usual">Value: usual</th>
+            <th class="pr-left" data-field="pressure_vs_usual">Pressure vs usual</th>
+            <th data-field="sr_pressure">Strike rate: pressure</th>
+            <th data-field="sr_usual">Strike rate: usual</th>
+            <th data-field="positive_match_pct">Matches with positive impact</th>
+            <th data-field="rating">Rating</th>
+            <th data-field="top10_chance_pct">Chance of staying top 10</th>
+          </tr></thead>
+          <tbody data-draw="rows" data-cols="rank,player,pressure_balls,value_pressure,value_usual,pressure_vs_usual,sr_pressure,sr_usual,positive_match_pct,rating,top10_chance_pct"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="pr-disc pr-off" id="bowlers" hidden>
+    <div class="pr-block" id="bowlers-top10">
+      <h2 class="pr-h2">Top 10 bowlers: value under pressure against their usual value</h2>
+      <div class="pr-legend"><span class="pr-key"><span class="pr-sw pr-sw-a"></span>High-pressure balls</span><span class="pr-key"><span class="pr-sw"></span>Ordinary balls</span></div>
+      <div class="pr-chart pr-chart-tall" data-draw="bars" data-source="bowlers">—</div>
+    </div>
+    <div class="pr-block" id="bowlers-field">
+      <h2 class="pr-h2">Every rated bowler: pressure record against usual level</h2>
+      <p class="pr-note">Up: conservative pressure record. Across: usual level. Both in runs per 100 balls after adjusting for sample size. The top 10 are highlighted.</p>
+      <div class="pr-chart pr-chart-tall" data-draw="scatter" data-source="bowlers">—</div>
+    </div>
+    <div class="pr-block" id="bowlers-table">
+      <h2 class="pr-h2">Bowler rankings</h2>
+      <label class="pr-check"><input type="checkbox" id="bowlers-all" data-all="bowlers"> Show every rated bowler</label>
+      <div class="pr-scroll">
+        <table class="pr-table" data-source="bowlers" data-row-key="player_id">
+          <thead><tr>
+            <th data-field="rank">Rank</th>
+            <th class="pr-left" data-field="player">Bowler</th>
+            <th data-field="pressure_balls">Pressure balls</th>
+            <th data-field="value_pressure">Value: pressure</th>
+            <th data-field="value_usual">Value: usual</th>
+            <th class="pr-left" data-field="pressure_vs_usual">Pressure vs usual</th>
+            <th data-field="econ_pressure">Economy: pressure</th>
+            <th data-field="econ_usual">Economy: usual</th>
+            <th data-field="wkts_pressure">Wickets: pressure</th>
+            <th data-field="positive_match_pct">Matches with positive impact</th>
+            <th data-field="rating">Rating</th>
+            <th data-field="top10_chance_pct">Chance of staying top 10</th>
+          </tr></thead>
+          <tbody data-draw="rows" data-cols="rank,player,pressure_balls,value_pressure,value_usual,pressure_vs_usual,econ_pressure,econ_usual,wkts_pressure,positive_match_pct,rating,top10_chance_pct"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="pr-two" id="checks">
+    <div class="pr-block" id="check-pressure">
+      <h2 class="pr-h2">High-pressure balls move the result almost three times as much</h2>
+      <div class="pr-scroll">
+        <table class="pr-table">
+          <thead><tr><th class="pr-left">Measure</th><th>Ordinary</th><th>High pressure</th></tr></thead>
+          <tbody>
+            <tr><td class="pr-left">Win-probability swing per ball (points)</td><td data-draw="sum" data-fmt="dec2" data-source="summary" data-field="swing_ordinary" data-row="0">—</td><td data-draw="sum" data-fmt="dec2" data-source="summary" data-field="swing_pressure" data-row="0">—</td></tr>
+            <tr><td class="pr-left">Bowled with the match in the balance</td><td data-draw="sum" data-fmt="pct" data-source="summary" data-field="balance_ordinary_pct" data-row="0">—</td><td data-draw="sum" data-fmt="pct" data-source="summary" data-field="balance_pressure_pct" data-row="0">—</td></tr>
+            <tr><td class="pr-left">From matches with a close finish</td><td data-draw="sum" data-fmt="pct" data-source="summary" data-field="close_ordinary_pct" data-row="0">—</td><td data-draw="sum" data-fmt="pct" data-source="summary" data-field="close_pressure_pct" data-row="0">—</td></tr>
+            <tr><td class="pr-left">Wickets per 100 balls</td><td data-draw="sum" data-fmt="dec1" data-source="summary" data-field="wickets_ordinary" data-row="0">—</td><td data-draw="sum" data-fmt="dec1" data-source="summary" data-field="wickets_pressure" data-row="0">—</td></tr>
+            <tr><td class="pr-left">Run rate</td><td data-draw="sum" data-fmt="dec2" data-source="summary" data-field="run_rate_ordinary" data-row="0">—</td><td data-draw="sum" data-fmt="dec2" data-source="summary" data-field="run_rate_pressure" data-row="0">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="pr-note">In the balance means the batting side's win probability is between 30% and 70%. A close finish is a win by 10 runs or fewer, or a chase completed in the final over.</p>
+    </div>
+    <div class="pr-block" id="check-reliability">
+      <h2 class="pr-h2">Pressure numbers alone are mostly noise, so usual level is blended in</h2>
+      <div class="pr-legend"><span class="pr-key"><span class="pr-sw pr-sw-a"></span>Batters</span><span class="pr-key"><span class="pr-sw pr-sw-b"></span>Bowlers</span></div>
+      <div class="pr-chart" data-draw="reliability" data-source="reliability">—</div>
+      <p class="pr-note">Reliability of the rating at each weighting of pressure record / usual level: 1 is perfectly repeatable between two halves of the matches and 0 is noise. The outlined pair is the weighting used for these rankings.</p>
+    </div>
+  </section>
+
+  <details class="pr-details" id="notes">
+    <summary>How the rating is built and where it is uncertain</summary>
+    <p>Rating = 0.6 × the conservative pressure record + 0.4 × usual level, each standardised across rated players of the same discipline. The conservative pressure record is the player's value in high-pressure balls, pulled towards average for small samples and lowered by 0.674 standard errors.</p>
+    <p>A player is rated with at least 120 high-pressure balls, 150 ordinary balls and 12 matches containing four or more pressure balls.</p>
+    <p>"Raises game" and "Drops" mean the gap between pressure and usual value is larger than one standard error. That gap was not repeatable between halves of the data, so it is shown as evidence and is not part of the rating.</p>
+    <p>The chance of staying in the top 10 comes from resampling each player's matches 1,000 times. Ranks 8 to 15 are close to interchangeable.</p>
+    <p>Rain-affected matches, no-results and two A-team tournaments are left out. Fielding, venue and pitch are not modelled.</p>
+  </details>
+</div>
+
+<script>
+  const C0 = dash.colors[0];
+  const C1 = dash.colors[1] || dash.colors[0];
+  document.querySelectorAll('.pr-sw-a').forEach((e) => { e.style.background = C0; });
+  document.querySelectorAll('.pr-sw-b').forEach((e) => { e.style.background = C1; });
+
+  const FMT = {
+    int: d3.format(','), pct: (v) => d3.format(',.0f')(v) + '%', dec1: d3.format('.1f'), dec2: d3.format('.2f'),
+    signed: d3.format('+.1f'),
+  };
+  const COLFMT = {
+    pressure_balls: FMT.int, value_pressure: FMT.signed, value_usual: FMT.signed, sr_pressure: d3.format('.0f'),
+    sr_usual: d3.format('.0f'), positive_match_pct: FMT.pct, rating: FMT.dec2, top10_chance_pct: FMT.pct,
+    econ_pressure: FMT.dec2, econ_usual: FMT.dec2, wkts_pressure: d3.format('.0f'),
+  };
+  const PILL = { 'Raises game': 'pr-pill pr-pill-up', 'Drops': 'pr-pill pr-pill-down', 'Holds level': 'pr-pill' };
+  const NOUN = { batters: 'batters', bowlers: 'bowlers' };
+
+  function rowsOf(id) {
+    const g = dash.data(id);
+    return g.status === 'ok' && Array.isArray(g.data) ? g.data : null;
+  }
+  function failed(el, id) {
+    el.replaceChildren(dash.data(id).status === 'error' ? 'Failed to load' : '—');
+  }
+  function makeTip(el) {
+    const tip = document.createElement('div');
+    tip.className = 'pr-tip';
+    tip.hidden = true;
+    el.append(tip);
+    return tip;
+  }
+  function showTip(tip, el, x, y, lines) {
+    tip.replaceChildren(...lines.map((line, i) => {
+      const d = document.createElement('div');
+      d.textContent = line;
+      if (i === 0) d.className = 'pr-tip-h';
+      return d;
+    }));
+    tip.hidden = false;
+    const left = Math.max(0, Math.min(el.clientWidth - tip.offsetWidth, x + 14));
+    const top = Math.max(0, Math.min(el.clientHeight - tip.offsetHeight, y + 14));
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+  function playerLines(r) {
+    return [r.rank + '. ' + r.player, 'Under pressure: ' + FMT.signed(r.value_pressure) + ' per 100 balls',
+      'Usually: ' + FMT.signed(r.value_usual) + ' per 100 balls', FMT.int(r.pressure_balls) + ' pressure balls, rating ' + FMT.dec2(r.rating)];
+  }
+
+  // one number or word from one row of a source
+  dash.draw('sum', (el) => {
+    const rows = rowsOf(el.dataset.source);
+    const v = rows && rows[0] ? rows[0][el.dataset.field] : null;
+    el.textContent = v == null ? '—' : FMT[el.dataset.fmt](v);
+  });
+  dash.draw('lead', (el) => {
+    const rows = rowsOf(el.dataset.source);
+    const top = rows && rows.find((r) => r.rank === 1);
+    el.textContent = top ? top.player : '—';
+  });
+
+  // top 10: pressure against usual
+  dash.draw('bars', (el) => {
+    const id = el.dataset.source;
+    const rows = rowsOf(id);
+    if (!rows) { failed(el, id); return; }
+    const top = rows.filter((r) => r.rank <= 10).sort((a, b) => a.rank - b.rank);
+    const w = Math.max(280, el.clientWidth);
+    const mt = 6, mb = 26, rowH = 34;
+    const h = mt + mb + rowH * top.length;
+    el.replaceChildren();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', '0 0 ' + w + ' ' + h)
+      .attr('role', 'img').attr('aria-label', 'Value per 100 balls under pressure and in ordinary balls for the top 10 ' + NOUN[id]);
+    const probe = svg.append('text').attr('class', 'pr-name');
+    let ml = 0;
+    top.forEach((r) => { probe.text(r.rank + '. ' + r.player); ml = Math.max(ml, probe.node().getComputedTextLength()); });
+    probe.text('+00.0');
+    const mr = probe.node().getComputedTextLength() + 8;
+    probe.remove();
+    ml = Math.min(ml + 12, w * 0.48);
+    const vals = top.flatMap((r) => [r.value_pressure, r.value_usual]);
+    const x = d3.scaleLinear().domain([Math.min(0, d3.min(vals)), Math.max(0, d3.max(vals))]).nice().range([ml, w - mr]);
+    const y = d3.scaleBand().domain(top.map((r) => r.player_id)).range([mt, h - mb]).paddingInner(0.3);
+    const ticks = x.ticks(Math.max(2, Math.floor((w - ml - mr) / 70)));
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', (d) => x(d)).attr('x2', (d) => x(d))
+      .attr('y1', mt).attr('y2', h - mb).style('stroke', (d) => d === 0 ? 'var(--cds-chart-reference)' : 'var(--cds-chart-grid)');
+    svg.append('g').attr('class', 'pr-axis').attr('transform', 'translate(0,' + (h - mb) + ')')
+      .call(d3.axisBottom(x).tickValues(ticks).tickSize(0).tickPadding(8)).call((g) => g.select('.domain').remove());
+    const bh = y.bandwidth() / 2;
+    const tip = makeTip(el);
+    const g = svg.append('g').selectAll('g').data(top).join('g');
+    g.append('rect').attr('x', (r) => Math.min(x(0), x(r.value_pressure))).attr('y', (r) => y(r.player_id))
+      .attr('width', (r) => Math.abs(x(r.value_pressure) - x(0))).attr('height', bh - 1).attr('rx', 2).style('fill', C0);
+    g.append('rect').attr('x', (r) => Math.min(x(0), x(r.value_usual))).attr('y', (r) => y(r.player_id) + bh)
+      .attr('width', (r) => Math.abs(x(r.value_usual) - x(0))).attr('height', bh - 1).attr('rx', 2).style('fill', 'var(--cds-chart-muted)');
+    g.append('text').attr('class', 'pr-val').attr('x', (r) => Math.max(x(0), x(r.value_pressure)) + 5)
+      .attr('y', (r) => y(r.player_id) + bh / 2).attr('dy', '0.35em').text((r) => FMT.signed(r.value_pressure));
+    g.append('text').attr('class', 'pr-name').attr('x', ml - 10).attr('y', (r) => y(r.player_id) + bh).attr('dy', '0.35em')
+      .attr('text-anchor', 'end').text((r) => r.rank + '. ' + r.player);
+    g.append('rect').attr('x', 0).attr('y', (r) => y(r.player_id) - 3).attr('width', w).attr('height', y.step()).style('fill', 'transparent')
+      .on('pointermove', (event, r) => { const p = d3.pointer(event, el); showTip(tip, el, p[0], p[1], playerLines(r)); })
+      .on('pointerleave', () => { tip.hidden = true; });
+  });
+
+  // every rated player: conservative pressure record against usual level
+  dash.draw('scatter', (el) => {
+    const id = el.dataset.source;
+    const rows = rowsOf(id);
+    if (!rows) { failed(el, id); return; }
+    const w = Math.max(280, el.clientWidth);
+    const h = Math.round(Math.max(300, Math.min(440, w * 0.62)));
+    el.replaceChildren();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', '0 0 ' + w + ' ' + h)
+      .attr('role', 'img').attr('aria-label', 'Conservative pressure record against usual level for every rated player among the ' + NOUN[id]);
+    const y = d3.scaleLinear().domain(d3.extent(rows, (r) => r.record_lb)).nice();
+    const probe = svg.append('text').attr('class', 'pr-tick');
+    let ml = 0;
+    y.ticks(6).forEach((t) => { probe.text(d3.format('+')(t)); ml = Math.max(ml, probe.node().getComputedTextLength()); });
+    probe.remove();
+    ml += 14;
+    const mr = w >= 560 ? 80 : 14, mt = 10, mb = 28;
+    y.range([h - mb, mt]);
+    const x = d3.scaleLinear().domain(d3.extent(rows, (r) => r.usual_level)).nice().range([ml, w - mr]);
+    const xt = x.ticks(Math.max(3, Math.floor((w - ml - mr) / 80))), yt = y.ticks(6);
+    svg.append('g').selectAll('line').data(xt).join('line').attr('x1', (d) => x(d)).attr('x2', (d) => x(d)).attr('y1', mt).attr('y2', h - mb)
+      .style('stroke', (d) => d === 0 ? 'var(--cds-chart-reference)' : 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('line').data(yt).join('line').attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).attr('x1', ml).attr('x2', w - mr)
+      .style('stroke', (d) => d === 0 ? 'var(--cds-chart-reference)' : 'var(--cds-chart-grid)');
+    svg.append('g').attr('class', 'pr-axis').attr('transform', 'translate(0,' + (h - mb) + ')')
+      .call(d3.axisBottom(x).tickValues(xt).tickSize(0).tickPadding(8).tickFormat(d3.format('+'))).call((g) => g.select('.domain').remove());
+    svg.append('g').attr('class', 'pr-axis').attr('transform', 'translate(' + ml + ',0)')
+      .call(d3.axisLeft(y).tickValues(yt).tickSize(0).tickPadding(8).tickFormat(d3.format('+'))).call((g) => g.select('.domain').remove());
+    const sorted = rows.slice().sort((a, b) => b.rank - a.rank);
+    const dots = svg.append('g').selectAll('circle').data(sorted).join('circle').attr('cx', (r) => x(r.usual_level)).attr('cy', (r) => y(r.record_lb))
+      .attr('r', (r) => r.rank <= 10 ? 5 : 3.5).style('fill', (r) => r.rank <= 10 ? C0 : 'var(--cds-chart-muted)')
+      .style('stroke', 'var(--color-bg)').style('stroke-width', 1);
+    if (w >= 560) {
+      svg.append('g').selectAll('text').data(sorted.filter((r) => r.rank <= 10)).join('text').attr('class', 'pr-name')
+        .attr('x', (r) => x(r.usual_level) + 8).attr('y', (r) => y(r.record_lb)).attr('dy', '0.35em').text((r) => r.player.split(' ').pop());
+    }
+    const tip = makeTip(el);
+    const delaunay = d3.Delaunay.from(sorted, (r) => x(r.usual_level), (r) => y(r.record_lb));
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h).style('fill', 'transparent')
+      .on('pointermove', (event) => {
+        const p = d3.pointer(event, el);
+        const scale = w / el.clientWidth;
+        const i = delaunay.find(p[0] * scale, p[1] * scale);
+        const r = sorted[i];
+        dots.attr('r', (d) => d === r ? 7 : (d.rank <= 10 ? 5 : 3.5));
+        showTip(tip, el, p[0], p[1], [r.rank + '. ' + r.player, 'Conservative pressure record: ' + FMT.signed(r.record_lb),
+          'Usual level: ' + FMT.signed(r.usual_level), 'Rating ' + FMT.dec2(r.rating) + ', ' + r.pressure_vs_usual.toLowerCase()]);
+      })
+      .on('pointerleave', () => { tip.hidden = true; dots.attr('r', (d) => d.rank <= 10 ? 5 : 3.5); });
+  });
+
+  // ranking tables: top 25, or everyone when the box is ticked
+  dash.draw('rows', (tbody) => {
+    const table = tbody.closest('table');
+    const id = table ? table.dataset.source : '';
+    const rows = rowsOf(id);
+    if (!rows) { tbody.replaceChildren(); return; }
+    const box = document.querySelector('[data-all="' + id + '"]');
+    const all = box ? box.checked : false;
+    const cols = tbody.dataset.cols.split(',');
+    const shown = rows.slice().sort((a, b) => a.rank - b.rank).filter((r) => all || r.rank <= 25);
+    tbody.replaceChildren(...shown.map((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.player_id;
+      if (r.rank <= 10) tr.className = 'pr-top';
+      cols.forEach((c) => {
+        const td = document.createElement('td');
+        const v = r[c];
+        if (c === 'pressure_vs_usual') {
+          td.className = 'pr-left';
+          const pill = document.createElement('span');
+          pill.className = PILL[v] || 'pr-pill';
+          pill.textContent = v;
+          td.append(pill);
+        } else {
+          if (c === 'player') td.className = 'pr-left';
+          td.textContent = v == null ? '—' : (COLFMT[c] ? COLFMT[c](v) : v);
+        }
+        tr.append(td);
+      });
+      return tr;
+    }));
+  });
+
+  // reliability of the rating at each weighting
+  dash.draw('reliability', (el) => {
+    const rows = rowsOf('reliability');
+    if (!rows) { failed(el, 'reliability'); return; }
+    const w = Math.max(280, el.clientWidth), h = 250;
+    const mt = 18, mb = 28;
+    el.replaceChildren();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', '0 0 ' + w + ' ' + h)
+      .attr('role', 'img').attr('aria-label', 'Reliability of the rating for batters and bowlers at five weightings of pressure record and usual level');
+    const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => Math.max(r.batters, r.bowlers))]).nice().range([h - mb, mt]);
+    const probe = svg.append('text').attr('class', 'pr-tick');
+    let ml = 0;
+    y.ticks(4).forEach((t) => { probe.text(FMT.dec1(t)); ml = Math.max(ml, probe.node().getComputedTextLength()); });
+    probe.remove();
+    ml += 12;
+    const x0 = d3.scaleBand().domain(rows.map((r) => r.weights)).range([ml, w]).paddingInner(0.22).paddingOuter(0.08);
+    const x1 = d3.scaleBand().domain(['batters', 'bowlers']).range([0, x0.bandwidth()]).padding(0.08);
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('y1', (d) => y(d)).attr('y2', (d) => y(d)).attr('x1', ml).attr('x2', w)
+      .style('stroke', 'var(--cds-chart-grid)');
+    svg.append('g').attr('class', 'pr-axis').attr('transform', 'translate(' + ml + ',0)')
+      .call(d3.axisLeft(y).ticks(4).tickSize(0).tickPadding(8).tickFormat(FMT.dec1)).call((g) => g.select('.domain').remove());
+    svg.append('g').attr('class', 'pr-axis').attr('transform', 'translate(0,' + (h - mb) + ')')
+      .call(d3.axisBottom(x0).tickSize(0).tickPadding(8)).call((g) => g.select('.domain').remove());
+    const tip = makeTip(el);
+    const g = svg.append('g').selectAll('g').data(rows).join('g').attr('transform', (r) => 'translate(' + x0(r.weights) + ',0)');
+    g.filter((r) => r.chosen).append('rect').attr('x', -5).attr('y', mt - 14).attr('width', x0.bandwidth() + 10).attr('height', h - mb - mt + 16)
+      .attr('rx', 4).style('fill', 'none').style('stroke', 'var(--cds-chart-reference)').style('stroke-dasharray', '4 3');
+    [['batters', C0], ['bowlers', C1]].forEach((pair) => {
+      const key = pair[0];
+      g.append('rect').attr('x', x1(key)).attr('y', (r) => y(r[key])).attr('width', x1.bandwidth()).attr('height', (r) => y(0) - y(r[key]))
+        .attr('rx', 2).style('fill', pair[1]);
+      if (x1.bandwidth() >= 24) {
+        g.append('text').attr('class', 'pr-val').attr('x', x1(key) + x1.bandwidth() / 2).attr('y', (r) => y(r[key]) - 4)
+          .attr('text-anchor', 'middle').text((r) => FMT.dec2(r[key]));
+      }
+    });
+    g.append('rect').attr('x', 0).attr('y', mt).attr('width', x0.bandwidth()).attr('height', h - mb - mt).style('fill', 'transparent')
+      .on('pointermove', (event, r) => {
+        const p = d3.pointer(event, el);
+        showTip(tip, el, p[0], p[1], ['Weights ' + r.weights, 'Batters: ' + FMT.dec2(r.batters), 'Bowlers: ' + FMT.dec2(r.bowlers)]);
+      })
+      .on('pointerleave', () => { tip.hidden = true; });
+  });
+
+  // controls
+  // Listeners sit on the document and look the elements up at click time, so they keep
+  // working if the page's elements are replaced after this script has run.
+  function redraw() {
+    ['bars', 'scatter', 'rows'].forEach((name) => dash.draw(name));
+  }
+  function show(name, link) {
+    document.querySelectorAll('.pr-tab').forEach((t) => { t.setAttribute('aria-pressed', t.dataset.show === name ? 'true' : 'false'); });
+    document.querySelectorAll('.pr-disc').forEach((s) => {
+      const off = s.id !== name;
+      s.hidden = off;
+      s.classList.toggle('pr-off', off);
+    });
+    if (link) dash.setLink(name);
+    redraw();
+    requestAnimationFrame(redraw);
+  }
+  document.addEventListener('click', (event) => {
+    const tab = event.target instanceof Element ? event.target.closest('.pr-tab') : null;
+    if (tab && tab.dataset.show) show(tab.dataset.show, true);
+  });
+  document.addEventListener('change', (event) => {
+    if (event.target instanceof Element && event.target.matches('[data-all]')) dash.draw('rows');
+  });
+  if (location.hash === '#bowlers') show('bowlers', false);
+</script>
+
+<p class="dash-foot">Built from the supplied IPL and T20I ball-by-ball data (2022 to 2026). Figures are a snapshot of the analysis and do not update.</p>
+</div>
+</body>
+</html>
